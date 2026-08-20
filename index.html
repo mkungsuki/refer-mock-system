@@ -201,6 +201,11 @@
   .capline input{width:70px; text-align:center}
   .dephead{font-size:16px; font-weight:700; color:var(--teal-dark); margin:18px 0 8px}
   .dephead:first-child{margin-top:0}
+  /* กล่องตัวอย่างผลลัพธ์ของ custom field */
+  .xfprev{border:1.5px dashed var(--teal); background:var(--teal-soft); border-radius:10px; padding:8px 12px; margin-top:8px}
+  .xfprev .t{font-size:12px; font-weight:700; color:var(--teal-dark)}
+  .xfprev label.f{margin-top:4px}
+  .xfprev select, .xfprev input{background:#fff}
 
   /* admin */
   .bar{background:#e9f0f0; border-radius:8px; height:26px; position:relative; overflow:hidden; flex:1}
@@ -1458,21 +1463,53 @@ function settingCard(t){
       </div>
     </div>
     <div class="mt" style="border-top:1px dashed var(--line); padding-top:8px">
-      <b style="font-size:13.5px">ฟิลด์เก็บเพิ่มของช่องนี้</b>
-      <span class="muted">(สูงสุด 5 · dropdown เท่านั้นที่รวมสถิติได้ — ระบบกลางไม่แตะ ไม่พังฐานข้อมูล)</span>
+      <b style="font-size:13.5px">📋 เก็บข้อมูลเพิ่มเฉพาะช่องนี้</b>
+      <div class="muted" style="margin-top:3px">เพิ่มฟิลด์แล้วจะเกิด 2 อย่าง:
+        <b>①</b> มีช่องใหม่โผล่ในฟอร์ม "＋ ลงนัด" ของช่องนี้ (ช่องอื่นไม่เห็น)
+        <b>②</b> แบบ dropdown จะถูกนับสรุปหัวรายชื่อทุกวัน เช่น "มารับยา 12 · Telemed 4" — ใช้จัดกำลังคนได้เลย</div>
       ${(t.fields||[]).map((f,i)=>`
         <div class="row mt"><span class="chip kind">${f.type==='select'?'dropdown':'ข้อความ'}</span>
           <b style="font-size:13.5px">${f.label}</b>
           <span class="muted">${f.options?f.options.join(' / '):''}</span>
           <button class="sbtn red" onclick="delField('${t.id}',${i})">ลบ</button></div>`).join('')}
+      ${(t.fields||[]).length ? `
+      <div class="xfprev">
+        <div class="t">👁 ตัวอย่างผลลัพธ์จริง</div>
+        <div class="muted" style="font-size:12px">ในฟอร์มลงนัดของช่องนี้ จะมีช่องนี้เพิ่ม:</div>
+        ${t.fields.map(f=> f.type==='select'
+          ? `<label class="f">${f.label} <select disabled><option>— ไม่ระบุ —</option>${f.options.map(o=>`<option>${o}</option>`).join('')}</select></label>`
+          : `<label class="f">${f.label} <input disabled placeholder="(พิมพ์อิสระ)"></label>`).join('')}
+        ${t.fields.some(f=>f.type==='select') ? `<div class="muted" style="font-size:12px; margin-top:6px">และหัวรายชื่อรายวันจะสรุปให้: ${
+          t.fields.filter(f=>f.type==='select').map(f=>`<b>${f.label}:</b> ${f.options.slice(0,3).map((o,k)=>`${o} ${[12,5,3][k]||2}`).join(' · ')}`).join(' | ')}</div>` : ''}
+      </div>` : ''}
       ${(t.fields||[]).length<5 ? `
-      <div class="row mt">
-        <input id="nfL-${t.id}" placeholder="ชื่อฟิลด์ เช่น ประเภทการมา" style="width:170px; font-size:13px">
-        <select id="nfT-${t.id}" style="font-size:13px"><option value="select">dropdown</option><option value="text">ข้อความ</option></select>
-        <input id="nfO-${t.id}" placeholder="ตัวเลือกคั่นด้วย , เช่น รับยา,Telemed" style="flex:1; min-width:150px; font-size:13px">
+      <div class="row mt"><span class="muted" style="font-size:12.5px">เพิ่มเร็วจากตัวอย่างยอดนิยม (กดปุ๊บติดเลย):</span>
+        ${XF_TPLS.map((tp,k)=>`<button class="sbtn teal" onclick="addFieldTpl('${t.id}',${k})">＋ ${tp.label}</button>`).join(' ')}
+      </div>
+      <div class="row mt"><span class="muted" style="font-size:12.5px">หรือสร้างเอง:</span>
+        <input id="nfL-${t.id}" placeholder="① ตั้งชื่อ เช่น สิทธิการรักษา" style="width:160px; font-size:13px">
+        <select id="nfT-${t.id}" style="font-size:13px"><option value="select">② dropdown (นับสถิติได้)</option><option value="text">② ข้อความอิสระ</option></select>
+        <input id="nfO-${t.id}" placeholder="③ ตัวเลือก คั่นด้วย , เช่น บัตรทอง,ประกันสังคม,จ่ายเอง" style="flex:1; min-width:170px; font-size:13px">
         <button class="sbtn teal" onclick="addField('${t.id}')">＋ เพิ่ม</button>
       </div>` : '<p class="muted mt">ครบ 5 ฟิลด์แล้ว</p>'}
     </div>` : ''}</div>`;
+}
+/* แม่แบบฟิลด์ยอดนิยม — กดเดียวติด พร้อมเห็น preview ทันที */
+const XF_TPLS = [
+  {label:'ประเภทการมา', options:['ตรวจปกติ','มารับยา','Telemed']},
+  {label:'ประเภทเคส', options:['New case','F/U เดิม','ปรับยา']},
+  {label:'เจาะเลือดก่อนพบแพทย์', options:['เจาะก่อนนัด','ไม่ต้องเจาะ']},
+];
+function addFieldTpl(tid, k){
+  if (!guardEdit(tid)) return;
+  const t = T(tid);
+  const tp = XF_TPLS[k];
+  if (!t.fields) t.fields = [];
+  if (t.fields.length>=5){ toast('ครบ 5 ฟิลด์แล้ว'); return; }
+  if (t.fields.some(f=>f.label===tp.label)){ toast(`มีฟิลด์ "${tp.label}" อยู่แล้ว`); return; }
+  t.fields.push({id:'x'+(state.nextId++), label:tp.label, type:'select', options:[...tp.options]});
+  save(); render();
+  toast(`✔ เพิ่ม "${tp.label}" แล้ว — ดูตัวอย่างผลลัพธ์ในกรอบเขียว`);
 }
 function addField(tid){
   if (!guardEdit(tid)) return;
@@ -1484,7 +1521,7 @@ function addField(tid){
   if (type==='select' && opts.length<2){ toast('dropdown ต้องมีตัวเลือกอย่างน้อย 2 ตัว'); return; }
   if (!t.fields) t.fields = [];
   t.fields.push({id:'x'+(state.nextId++), label, type, options: type==='select'?opts:undefined});
-  save(); render(); toast(`เพิ่มฟิลด์ "${label}" ให้ ${t.name} แล้ว — จะโผล่ในฟอร์มลงนัดของช่องนี้เท่านั้น`);
+  save(); render(); toast(`✔ เพิ่ม "${label}" แล้ว — ดูตัวอย่างผลลัพธ์ในกรอบเขียว แล้วลองเปิดฟอร์ม ＋ ลงนัด ได้เลย`);
 }
 function delField(tid, i){
   if (!guardEdit(tid)) return;
