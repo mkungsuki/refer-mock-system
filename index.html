@@ -268,7 +268,7 @@
    แต่ละ target มีตารางออกตรวจ + เพดานนัดปกติ + โควตา refer แยกกัน
    ============================================================ */
 
-const LS_KEY = 'cph-appt-mock-v9';
+const LS_KEY = 'cph-appt-mock-v10';
 /* เกณฑ์คลินิกที่แทรกเกินเพดานได้ — ต้องเลือกจากรายการ ไม่มี "ด่วน (รู้สึกว่าด่วน)" */
 const URGENT_REASONS = ['สงสัยมะเร็ง (เป้า 2 สัปดาห์)','Stroke/TIA fast track','เคสทรุดเร็ว/ผล lab วิกฤต','Post-op ภาวะแทรกซ้อน','คำสั่งแพทย์เวร/ผอ. (ระบุชื่อในหมายเหตุ)'];
 const PIN_KEY = 'cph-appt-pin';   // หน้าประจำ (ผูกกับบัญชี — reset ข้อมูลไม่ล้าง)
@@ -559,6 +559,18 @@ function seed(){
                             ['cd-echo','2026-08-25','am'],['nr-a','2026-08-27','pm'],['xr-us','2026-09-01','pm']]){
     const a = appts.find(x=>x.targetId===tg && x.date===dd && x.session===ss && !x.cid);
     if (a){ a.hn=bc[0]; a.pname=bc[1]; a.cid=bc[2]; }
+  }
+  // เติมวัน พฤ 27 ส.ค. บ่าย ของ พญ.เมธาวี ให้เต็มพอดี 20/20 — ฉากเดโม "หมอเจ้าของช่องกดแทรกด่วน"
+  {
+    const tnr = targets.find(t=>t.id==='nr-a');
+    let n=0; for (const a of appts) if (a.targetId==='nr-a' && a.date==='2026-08-27' && a.session==='pm' && a.type!=='refer') n++;
+    for (let k=n; k<tnr.capN; k++){
+      appts.push({id:nextId++, hn:'HN 68'+String(10000+hnSeq++).slice(1), pname:mkName(),
+        targetId:'nr-a', date:'2026-08-27', session:'pm', type:'opd',
+        icd:ICD_POOL.NEURO[k%ICD_POOL.NEURO.length], note:'F/U',
+        createdOn:d2s(addDays(s2d(TODAY),-14)), status:'booked',
+        extra:{f1:['New case','F/U เดิม','ปรับยา'][k%3]}});
+    }
   }
   // เคส refer จาก รพช. ที่ "รอออก HN" — พร้อมให้กดปุ่มออก HN โชว์ (สัปดาห์หน้า)
   const pendingRefs = [
@@ -1210,6 +1222,11 @@ function dayPanelHTML(t, ds){
         ${t.capR>0?`<span class="chip ${c.r>=t.capR?'full':'refer'}">refer ${c.r}/${t.capR}</span>`:''}`}
         <span class="spacer"></span>
         ${canBook() && open ? `<button class="sbtn teal" onclick="openQuickAdd('${t.id}','${ds}','${sess}')">＋ ลงนัด</button>` : ''}
+        ${canBook() && open && ['ward','opd','refer'].some(tp =>
+            t.types.includes(tp) && bucketCap(t,tp)>0 && bucketUsed(t,c,tp)>=bucketCap(t,tp) &&
+            canOverride(t,tp) && bucketUsed(t,c,tp)<hardMax(t,tp))
+          ? `<button class="sbtn" style="background:var(--red); color:#fff; border-color:var(--red)"
+              title="เต็มแล้ว แต่คุณเป็นผู้มีสิทธิ์แทรกตามเกณฑ์คลินิก" onclick="openQuickAdd('${t.id}','${ds}','${sess}','',true)">🚨 แทรกด่วน</button>` : ''}
       </div>
       ${xfTally(t, list)}
       ${list.map(a=>`
@@ -1261,7 +1278,7 @@ function togStatus(id){
 }
 
 /* ---------- ลงนัดเร็วจาก day panel ---------- */
-function openQuickAdd(tid, ds, sess, noteDefault){
+function openQuickAdd(tid, ds, sess, noteDefault, preferUrgent){
   if (!canBook()) return;
   const t = T(tid);
   const c = counts(tid, ds, sess);
@@ -1290,6 +1307,13 @@ function openQuickAdd(tid, ds, sess, noteDefault){
     <label class="f">หมายเหตุสั้น <input id="qNote" value="${noteDefault||''}" placeholder="เช่น F/U DM / post-op D14"></label>
     <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="quickSave('${tid}','${ds}','${sess}')">✔ บันทึกนัด</button></div>
   `);
+  if (preferUrgent){
+    // มาจากปุ่ม 🚨 — เลือกประเภทที่เต็ม (และแทรกได้) ให้เลย จะได้เห็นกล่องเกณฑ์คลินิกทันที
+    const tp = ['ward','opd','refer'].find(x =>
+      t.types.includes(x) && bucketCap(t,x)>0 && bucketUsed(t,c,x)>=bucketCap(t,x) &&
+      canOverride(t,x) && bucketUsed(t,c,x)<hardMax(t,x));
+    if (tp) document.getElementById('qType').value = tp;
+  }
   document.getElementById('qHn').focus();
   qTypeChanged(tid, ds, sess);
 }
