@@ -1718,9 +1718,10 @@ function sysArch(tid, val){
 
 /* ================= ภาพรวมบริหาร ================= */
 function moveWeek(n){ weekAnchor = d2s(addDays(s2d(weekAnchor), n*7)); render(); }
-let dashSec = 'icd', dashMore = false;
+let dashSec = 'icd', dashMore = false, dashIcdDept = 'all';
 function setDashSec(s){ dashSec=s; dashMore=false; dashHosp=null; render(); }
 function togDashMore(){ dashMore=!dashMore; render(); }
+function setDashIcdDept(d){ dashIcdDept=d; dashMore=false; render(); }
 
 /* ความหนาแน่น: ดูเป็นสัปดาห์ / เดือน / ปี */
 let dashPeriod = 'week';
@@ -1896,10 +1897,18 @@ function dashPanelHTML(A){
   const cut = (rows) => dashMore ? rows : rows.slice(0,5);
 
   if (dashSec==='icd'){
-    const top = A.topIcd;
-    return `<b>โรคที่ถูก refer มากที่สุด</b>
-      ${hbar(cut(top), r=>`${r[0]} ${ICD_NAME[r[0]]||''}`, r=>r[1])}${more(top)}
-      <div class="insight">💡 3 อันดับแรก: ${top.slice(0,3).map(r=>ICD_NAME[r[0]]||r[0]).join(', ')} — ใช้ตัดสินใจเปิดคลินิกเฉพาะ/ขยายโควตา refer ของ service ที่ถูกขอบ่อย</div>`;
+    // เลือกดูรวมทั้ง รพ. หรือเจาะรายแผนก (แผนกของช่องที่ถูก refer เข้า)
+    const depts = [...new Set(A.refs.map(a=>{ const t=T(a.targetId); return t?t.dept:null; }).filter(Boolean))].sort();
+    const refsF = dashIcdDept==='all' ? A.refs : A.refs.filter(a=>{ const t=T(a.targetId); return t && t.dept===dashIcdDept; });
+    const top = cntBy(refsF, a=>a.icd);
+    return `<div class="row"><b>โรคที่ถูก refer มากที่สุด</b>
+        <div class="seg sm">
+          <button class="${dashIcdDept==='all'?'on':''}" onclick="setDashIcdDept('all')">รวมทั้ง รพ.</button>
+          ${depts.map(d=>`<button class="${dashIcdDept===d?'on':''}" onclick="setDashIcdDept('${d}')">${d}</button>`).join('')}
+        </div>
+        <span class="muted">${dashIcdDept==='all'?`${A.refs.length} เคส`:`${refsF.length} เคสเข้า ${dashIcdDept}`}</span></div>
+      ${top.length ? hbar(cut(top), r=>`${r[0]} ${ICD_NAME[r[0]]||''}`, r=>r[1])+more(top) : '<p class="muted mt">ไม่มีเคส refer เข้าแผนกนี้ในช่วง 12 สัปดาห์</p>'}
+      ${top.length ? `<div class="insight">💡 ${dashIcdDept==='all'?'ทั้ง รพ.':dashIcdDept} 3 อันดับแรก: ${top.slice(0,3).map(r=>`${ICD_NAME[r[0]]||r[0]} (${r[1]})`).join(', ')} — ใช้ตัดสินใจเปิดคลินิกเฉพาะ/ขยายโควตา refer ของ service ที่ถูกขอบ่อย</div>`:''}`;
   }
   if (dashSec==='hosp'){
     const max = A.byHosp.length ? A.byHosp[0][1] : 1;
