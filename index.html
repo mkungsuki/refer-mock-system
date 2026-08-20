@@ -1,0 +1,2008 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ตารางนัดกลาง รพ.ชุมแพ (MOCK)</title>
+<style>
+  :root{
+    --teal:#0d6d72; --teal-dark:#0a5559; --teal-soft:#e3f1f2;
+    --red:#a8322b; --red-soft:#f9e9e7;
+    --amber:#9a6a08; --amber-soft:#f9f1dc;
+    --green:#1c6b4a; --green-soft:#e6f2ec;
+    --ink:#20302f; --dim:#617776; --line:#d5e2e1; --bg:#f3f7f7; --card:#ffffff;
+  }
+  *{box-sizing:border-box; margin:0}
+  body{font-family:'Leelawadee UI','Segoe UI',sans-serif; background:var(--bg); color:var(--ink); font-size:15px}
+  button{font-family:inherit; cursor:pointer}
+  input,select{font-family:inherit; font-size:14.5px; padding:7px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink)}
+  input:focus,select:focus{outline:2px solid var(--teal); outline-offset:0}
+
+  header{background:var(--teal); color:#fff; padding:10px 18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; position:sticky; top:0; z-index:20}
+  header h1{font-size:18px; font-weight:700}
+  .mockbadge{background:#fff3; border:1px dashed #fff9; border-radius:999px; padding:2px 12px; font-size:12.5px}
+  .spacer{flex:1}
+  .sideSwitch{display:flex; background:#0005; border-radius:999px; padding:3px}
+  .sideSwitch button{border:none; background:transparent; color:#fffc; padding:6px 16px; border-radius:999px; font-size:14px; font-weight:600}
+  .sideSwitch button.on{background:#fff; color:var(--teal-dark)}
+  .hbtn{border:none; border-radius:8px; padding:8px 14px; font-weight:700; font-size:14px}
+  .hbtn.ghost{background:transparent; color:#fffc; border:1px solid #fff6; font-weight:400; font-size:12.5px; padding:6px 10px}
+
+  nav.tabs{display:flex; gap:6px; padding:10px 18px 0; max-width:1240px; margin:0 auto}
+  nav.tabs button{border:1px solid var(--line); border-bottom:none; background:#e9f0f0; color:var(--dim); padding:8px 18px; border-radius:10px 10px 0 0; font-size:14.5px; font-weight:600}
+  nav.tabs button.on{background:var(--card); color:var(--teal-dark); box-shadow:0 -2px 0 var(--teal) inset}
+  main{max-width:1240px; margin:0 auto; padding:0 18px 40px}
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:0 12px 12px 12px; padding:18px}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px}
+  .muted{color:var(--dim); font-size:13px}
+  .mt{margin-top:10px}
+  .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+
+  /* breadcrumb */
+  .crumb{display:flex; gap:6px; align-items:center; margin-bottom:14px; font-size:14.5px; flex-wrap:wrap}
+  .crumb a{color:var(--teal-dark); font-weight:700; cursor:pointer; text-decoration:none}
+  .crumb a:hover{text-decoration:underline}
+  .crumb span.sep{color:var(--dim)}
+  .crumb b{font-size:16px}
+
+  /* หน้าเลือกแผนก */
+  .deptgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px}
+  .deptcard{border:1.5px solid var(--line); border-radius:14px; padding:18px; background:#fff; cursor:pointer; transition:border-color .1s}
+  .deptcard:hover{border-color:var(--teal); background:var(--teal-soft)}
+  .deptcard .ic{font-size:26px}
+  .deptcard .nm{font-size:18px; font-weight:700; color:var(--teal-dark); margin-top:4px}
+  .deptcard .model{font-size:13px; color:var(--dim); margin-top:2px; min-height:34px}
+  .deptcard .today{margin-top:8px; font-size:13.5px}
+
+  /* หน้าเลือกช่องรับนัดในแผนก */
+  .tgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px}
+  .tcard{border:1.5px solid var(--line); border-radius:14px; padding:16px; background:#fff; cursor:pointer}
+  .tcard:hover{border-color:var(--teal); background:var(--teal-soft)}
+  .tcard .nm{font-weight:700; font-size:16px}
+  .tcard .sub{font-size:12.5px; color:var(--dim); margin-top:2px}
+  .tcard .sched{margin-top:8px; font-size:13px}
+  .tcard .stat{margin-top:6px; font-size:13.5px; font-weight:700}
+
+  /* chips */
+  .chip{display:inline-block; border-radius:999px; padding:1px 9px; font-size:11.5px; font-weight:700}
+  .chip.ward{background:#e8e3f5; color:#4d3a8e}
+  .chip.opd{background:var(--teal-soft); color:var(--teal-dark)}
+  .chip.refer{background:var(--amber-soft); color:var(--amber)}
+  .chip.kind{background:#eef4f4; color:var(--dim); font-weight:400}
+  .chip.ok{background:var(--green-soft); color:var(--green)}
+  .chip.warn{background:var(--amber-soft); color:var(--amber)}
+  .chip.full{background:var(--red-soft); color:var(--red)}
+  .chip.over{background:var(--red); color:#fff}
+
+  /* ปฏิทินรายเดือน */
+  .cols{display:grid; grid-template-columns:1fr 390px; gap:16px}
+  @media (max-width:1000px){ .cols{grid-template-columns:1fr} }
+  .calwrap{overflow-x:auto}
+  .calwrap .cal-grid{min-width:540px}
+  /* จอ รพ. จริง: laptop + Windows scaling 125–150% → กว้าง effective ~1024–1366 (บทเรียน AI-clinic) */
+  @media (max-width:1366px) and (min-width:1001px){
+    .cols{grid-template-columns:1fr 340px}
+  }
+  @media (max-width:1366px){
+    .hrow .lb{width:150px}
+  }
+  @media (max-width:1100px){
+    .mpill{font-size:10.5px; padding:1px 3px}
+    .mcell{min-height:64px; padding:3px 4px}
+    .deptcard .model{min-height:0}
+    body{font-size:14px}
+  }
+  .cal-head{display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap}
+  .cal-head b{font-size:18px; flex:1; text-align:center}
+  .navbtn{border:1px solid var(--line); background:#fff; border-radius:8px; padding:6px 12px; font-size:14px}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px}
+  .cal-dow{text-align:center; font-size:12.5px; color:var(--dim); font-weight:700; padding:4px 0}
+  .mcell{border:1px solid var(--line); border-radius:10px; min-height:78px; padding:5px 6px; background:#fff; cursor:pointer; position:relative}
+  .mcell:hover{border-color:var(--teal)}
+  .mcell.off{background:transparent; border:none; cursor:default}
+  .mcell.closed{background:#f2f5f5; cursor:default; border-style:dashed}
+  .mcell.closed:hover{border-color:var(--line)}
+  .mcell.today{outline:2px solid var(--teal)}
+  .mcell.sel{background:var(--teal-soft); border-color:var(--teal)}
+  .mcell.past{opacity:.45}
+  .mcell .d{font-weight:700; font-size:13px}
+  .mpill{border-radius:6px; padding:1px 5px; font-size:11.5px; font-weight:700; margin-top:3px; line-height:1.5}
+  .mpill.ok{background:var(--green-soft); color:var(--green)}
+  .mpill.warn{background:var(--amber-soft); color:var(--amber)}
+  .mpill.full{background:var(--red-soft); color:var(--red)}
+  .mpill.over{background:var(--red); color:#fff}
+  .legend{display:flex; gap:12px; font-size:12.5px; color:var(--dim); flex-wrap:wrap; margin-top:10px}
+  .dot{display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:4px; vertical-align:-1px}
+
+  /* day panel */
+  .dayp h2{font-size:16.5px; color:var(--teal-dark)}
+  .sessblock{border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-top:10px}
+  .sessblock .shead{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .sessblock .shead b{font-size:15px}
+  /* แถวนัด: ชื่อบรรทัดบน รายละเอียดบรรทัดล่าง ปุ่มชิดขวา — ชื่อยาวแค่ไหนก็ไม่เบียด */
+  .appt{border:1px solid var(--line); border-radius:10px; padding:7px 10px; margin-top:7px; display:flex; gap:6px 10px; align-items:flex-start; flex-wrap:wrap; font-size:14px}
+  .appt > .chip{flex:none; margin-top:3px}
+  .appt .who{flex:1 1 180px; min-width:0}
+  .appt .who .nm{font-weight:700; font-size:14px; overflow-wrap:anywhere; line-height:1.35}
+  .appt .who .sub{font-size:12px; color:var(--dim); overflow-wrap:anywhere; margin-top:2px; line-height:1.5;
+    display:flex; flex-wrap:wrap; gap:2px 8px; align-items:center}
+  .appt .who .sub .chip{white-space:normal; text-align:left}
+  .appt .acts{flex:none; display:flex; gap:6px; margin-left:auto; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+  .appt .hn{font-weight:700}
+  .appt .note{font-size:12.5px; color:var(--dim); flex:1; min-width:100px}
+  .sbtn{border:1px solid var(--line); background:#fff; border-radius:8px; padding:4px 10px; font-size:13px}
+  .sbtn.red{color:var(--red); border-color:#e6c6c3}
+  .sbtn.teal{color:var(--teal-dark); border-color:var(--teal); font-weight:700}
+
+  /* modal */
+  #ovl{position:fixed; inset:0; background:#0006; display:none; align-items:flex-start; justify-content:center; z-index:50; overflow:auto; padding:40px 12px}
+  #ovl.show{display:flex}
+  .modal{background:#fff; border-radius:14px; padding:20px; width:100%; max-width:640px; box-shadow:0 10px 40px #0004}
+  .modal h2{font-size:17px; color:var(--teal-dark); margin-bottom:8px}
+  .mclose{float:right; border:none; background:none; font-size:20px; color:var(--dim)}
+  .bigbtn{border:1.5px solid var(--line); background:#fff; border-radius:10px; padding:9px 15px; font-size:14.5px; font-weight:600; color:var(--ink)}
+  .bigbtn:hover{border-color:var(--teal); background:var(--teal-soft)}
+  .bigbtn.sel{border-color:var(--teal); background:var(--teal); color:#fff}
+  .bigbtn:disabled{opacity:.4; cursor:not-allowed}
+  label.f{display:block; margin-top:10px; font-size:13.5px; color:var(--dim)}
+  label.f input, label.f select{display:block; width:100%; margin-top:3px}
+
+  /* ICD-10 autocomplete */
+  .icdwrap{position:relative}
+  .icdlist{position:absolute; left:0; right:0; top:100%; background:#fff; border:1px solid var(--teal);
+    border-radius:0 0 10px 10px; z-index:60; max-height:230px; overflow:auto; box-shadow:0 6px 18px #0002; display:none}
+  .icdlist button{display:block; width:100%; text-align:left; border:none; background:#fff; padding:7px 12px; font-size:13.5px; border-bottom:1px solid var(--line)}
+  .icdlist button:hover{background:var(--teal-soft)}
+  .icdlist button b{color:var(--teal-dark)}
+  .chip.icd{background:#eef; color:#33418e}
+
+  /* dashboard */
+  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px}
+  .kpi{border:1px solid var(--line); border-radius:12px; padding:12px 14px; background:#fff}
+  .kpi .v{font-size:26px; font-weight:700; color:var(--teal-dark)}
+  .kpi .v.bad{color:var(--red)}
+  .kpi .l{font-size:12.5px; color:var(--dim)}
+  .hrow{display:flex; gap:10px; align-items:center; margin-top:6px; font-size:13px}
+  .hrow .lb{width:190px; text-align:right; color:var(--ink); flex:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .hrow .tr{flex:1; background:#e9f0f0; border-radius:6px; height:16px; position:relative}
+  .hrow .tr i{position:absolute; inset:0 auto 0 0; background:var(--teal); border-radius:6px 0 0 6px}
+  .hrow .tr i.amber{background:var(--amber)} .hrow .tr i.red{background:var(--red)}
+  .hrow .n{width:52px; font-weight:700; flex:none}
+  .dashgrid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
+  @media (max-width:1000px){ .dashgrid{grid-template-columns:1fr} }
+  /* segmented control (details on demand) */
+  .seg{display:flex; gap:0; border:1px solid var(--line); border-radius:10px; overflow:hidden; width:fit-content}
+  .seg button{border:none; background:#fff; padding:8px 18px; font-size:14px; font-weight:600; color:var(--dim); border-right:1px solid var(--line)}
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:var(--teal); color:#fff}
+  .seg.sm button{padding:4px 12px; font-size:12.5px}
+  .insight{background:var(--teal-soft); border-left:4px solid var(--teal); border-radius:0 8px 8px 0; padding:8px 12px; font-size:13.5px; margin-top:10px}
+  .insight.warn{background:var(--red-soft); border-left-color:var(--red)}
+  .morebtn{border:none; background:none; color:var(--teal-dark); font-weight:700; font-size:13px; cursor:pointer; margin-top:6px}
+
+  /* mini calendar ใน modal (เลือกวันย้าย/ลงนัด/จอง refer) */
+  .mc-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:8px}
+  .mc-cell{border:1px solid var(--line); border-radius:8px; min-height:56px; padding:3px 4px; background:#fff}
+  .mc-cell.off{border:none; background:transparent}
+  .mc-cell.closed{background:#f2f5f5; border-style:dashed}
+  .mc-cell .d{font-size:11.5px; font-weight:700; color:var(--dim)}
+  .mc-cell button{display:block; width:100%; border:none; border-radius:6px; font-size:11px; font-weight:700; padding:2px 3px; margin-top:2px}
+  .mc-cell button.ok{background:var(--green-soft); color:var(--green)}
+  .mc-cell button.warn{background:var(--amber-soft); color:var(--amber)}
+  .mc-cell button:disabled{background:var(--red-soft); color:var(--red); cursor:not-allowed; opacity:.8}
+
+  /* settings */
+  .setgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:12px}
+  table.sched{border-collapse:collapse; margin-top:8px}
+  table.sched th, table.sched td{border:1px solid var(--line); padding:5px 10px; font-size:13.5px; text-align:center}
+  table.sched th{background:#eef4f4; font-weight:600}
+  .capline{display:flex; gap:14px; margin-top:10px; flex-wrap:wrap; align-items:center; font-size:13.5px}
+  .capline input{width:70px; text-align:center}
+  .dephead{font-size:16px; font-weight:700; color:var(--teal-dark); margin:18px 0 8px}
+  .dephead:first-child{margin-top:0}
+
+  /* admin */
+  .bar{background:#e9f0f0; border-radius:8px; height:26px; position:relative; overflow:hidden; flex:1}
+  .bar > i{position:absolute; inset:0 auto 0 0; background:var(--teal); border-radius:8px 0 0 8px}
+  .bar > i.warn{background:var(--amber)} .bar > i.over{background:var(--red)}
+  .bar span{position:absolute; inset:0; display:flex; align-items:center; padding:0 10px; font-size:13px; font-weight:700; color:#fff; text-shadow:0 0 3px #0006}
+
+  #toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 22px; border-radius:999px; font-size:14.5px; opacity:0; transition:opacity .25s; z-index:99; pointer-events:none}
+  #toast.show{opacity:1}
+
+  /* ใบนัด — โผล่เฉพาะตอนสั่งพิมพ์ */
+  #printArea{display:none}
+  @media print{
+    header, nav.tabs, main, #ovl, #toast{display:none !important}
+    body{background:#fff}
+    #printArea{display:block}
+    .slip{width:148mm; margin:0 auto; padding:10mm; border:1.5px solid #333; border-radius:4mm; font-size:13pt; color:#000}
+    .slip .s-head{display:flex; align-items:baseline; gap:8px; border-bottom:2px solid #333; padding-bottom:4mm; margin-bottom:5mm}
+    .slip .s-head b{font-size:16pt}
+    .slip .s-mock{margin-left:auto; border:1px dashed #999; border-radius:99px; padding:1px 10px; font-size:9pt; color:#666}
+    .slip table{border-collapse:collapse; width:100%}
+    .slip td{padding:2mm 0; vertical-align:top}
+    .slip td:first-child{width:34mm; color:#444}
+    .slip .s-date{font-size:15pt; font-weight:700; border:1.5px solid #333; border-radius:3mm; padding:4mm; text-align:center; margin:4mm 0}
+    .slip .s-note{font-size:10.5pt; color:#333; border-top:1px dashed #999; padding-top:3mm; margin-top:4mm}
+    .slip .s-foot{font-size:9pt; color:#777; margin-top:4mm; text-align:right}
+  }
+  .banner{background:var(--amber-soft); border:1px solid #e5d4a6; color:var(--amber); border-radius:10px; padding:8px 14px; font-size:13.5px; margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ตารางนัดกลาง รพ.ชุมแพ</h1>
+  <span class="mockbadge">MOCK — ข้อมูลสมมติทั้งหมด</span>
+  <span class="spacer"></span>
+  <button class="hbtn ghost" id="btnSearch" style="display:none" onclick="openPatientSearch()">🔍 ค้นผู้ป่วย</button>
+  <span id="userChip"></span>
+  <div class="sideSwitch" id="sideSwitch">
+    <button id="swCph" class="on" onclick="setSide('cph')">ฝั่ง รพ.ชุมแพ</button>
+    <button id="swNet" onclick="setSide('net')">ฝั่ง รพช. เครือข่าย</button>
+  </div>
+  <button class="hbtn ghost" onclick="resetData()">รีเซ็ตข้อมูล mock</button>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+<main><div class="panel" id="app"></div></main>
+
+<div id="ovl" onclick="if(event.target===this)closeModal()"><div class="modal" id="modalBox"></div></div>
+<div id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   ตารางนัดกลาง รพ.ชุมแพ — interactive mock (v2)
+   Flow หลัก: เลือกแผนก → เลือกช่องรับนัด → ปฏิทินรายเดือน (ดูล่วงหน้า 6 เดือน)
+   Data model กลาง: ทุกนัดชี้เข้า "slot target" ซึ่งเป็นได้ทั้ง
+   หมอรายคน / pool แผนก / service / resource (เครื่อง–หัตถการ)
+   แต่ละ target มีตารางออกตรวจ + เพดานนัดปกติ + โควตา refer แยกกัน
+   ============================================================ */
+
+const LS_KEY = 'cph-appt-mock-v9';
+/* เกณฑ์คลินิกที่แทรกเกินเพดานได้ — ต้องเลือกจากรายการ ไม่มี "ด่วน (รู้สึกว่าด่วน)" */
+const URGENT_REASONS = ['สงสัยมะเร็ง (เป้า 2 สัปดาห์)','Stroke/TIA fast track','เคสทรุดเร็ว/ผล lab วิกฤต','Post-op ภาวะแทรกซ้อน','คำสั่งแพทย์เวร/ผอ. (ระบุชื่อในหมายเหตุ)'];
+const PIN_KEY = 'cph-appt-pin';   // หน้าประจำ (ผูกกับบัญชี — reset ข้อมูลไม่ล้าง)
+const USER_KEY = 'cph-appt-user'; // บัญชีที่ login ค้างไว้
+
+/* บัญชีจำลอง — ระบบจริงผูกกับ AD/HOSxP account, mock ไม่ต้องใส่รหัสผ่าน */
+const USERS = [
+  {id:'dir',      name:'ผอ. / ทีมบริหาร',            role:'admin',  icon:'🏛️', desc:'เห็น dashboard และตารางทั้งหมด — อ่านอย่างเดียว'},
+  {id:'dr-met',   name:'พญ.เมธาวี (Neuro)',          role:'doctor', targets:['nr-a'],  icon:'🧠', desc:'ปฏิทินตัวเอง · แก้ตารางออกตรวจ/เพดาน/ฟิลด์ ได้เฉพาะของตัวเอง'},
+  {id:'dr-kit',   name:'นพ.กิตติ (Med)',             role:'doctor', targets:['med-a'], icon:'🩺', desc:'ปฏิทินตัวเอง · แก้ได้เฉพาะของตัวเอง'},
+  {id:'dr-pak',   name:'นพ.ปกรณ์ (ศัลย์)',           role:'doctor', targets:['sx-a'],  icon:'🔪', desc:'ปฏิทินตัวเอง · แก้ได้เฉพาะของตัวเอง'},
+  {id:'nurse-ncd',name:'พยาบาลหน้าคลินิก NCD (MED)', role:'nurse',  dept:'MED',   icon:'💉', desc:'ลงนัดใหม่ได้ทุกแผนก (เฉพาะช่องว่าง) · ย้าย/ยกเลิกได้เฉพาะนัดแผนก MED'},
+  {id:'nurse-or', name:'พยาบาลหน้าคลินิก Ortho',     role:'nurse',  dept:'ORTHO', icon:'🦴', desc:'ลงนัดใหม่ได้ทุกแผนก (เฉพาะช่องว่าง) · ย้าย/ยกเลิกได้เฉพาะนัด Ortho'},
+  {id:'refer-c',  name:'ศูนย์ refer รพ.ชุมแพ',       role:'refer',  icon:'📞', desc:'ลงนัด refer ทางโทรศัพท์/ThaiRefer · แก้ตั้งค่าไม่ได้'},
+  {id:'it',       name:'IT / ผู้ดูแลระบบ',            role:'it',     icon:'🛠️', desc:'เพิ่มหมอ/คลินิก/แผนกใหม่ · ปิดรับนัดช่องเก่า · ไม่ยุ่งกับตัวนัด'},
+  {id:'net-ppm',  name:'รพช.ภูผาม่าน',               role:'net', hosp:'รพช.ภูผาม่าน', icon:'🏥', desc:'เห็นเฉพาะสลอต refer ว่าง + นัดของ รพ. ตัวเอง'},
+  {id:'net-scp',  name:'รพช.สีชมพู',                 role:'net', hosp:'รพช.สีชมพู',   icon:'🏥', desc:'เห็นเฉพาะสลอต refer ว่าง + นัดของ รพ. ตัวเอง'},
+];
+const DAYS = ['mon','tue','wed','thu','fri'];
+const DAY_TH = {mon:'จ', tue:'อ', wed:'พ', thu:'พฤ', fri:'ศ'};
+const SESS_TH = {am:'เช้า', pm:'บ่าย'};
+const TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_M_FULL = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TYPE_TH = {ward:'Ward D/C', opd:'OPD', refer:'Refer'};
+const KIND_TH = {pool:'pool แผนก', doctor:'หมอรายคน', service:'service', resource:'เครื่อง/หัตถการ'};
+const NET_HOSPS = ['รพช.ภูผาม่าน','รพช.สีชมพู','รพช.หนองเรือ','รพช.ภูเวียง','รพช.เวียงเก่า'];
+const STATUS_TH = {booked:'นัดไว้', done:'มาตามนัด', noshow:'ไม่มา'};
+
+/* ICD-10 ย่อ (โรคที่พบบ่อยใน รพ. ชุมชน/ทั่วไป) — พิมพ์ค้นได้ทั้งรหัสและชื่อ */
+const ICD = [
+  ['E11.9','DM เบาหวาน type 2'],['I10','HT ความดันโลหิตสูง'],['E78.5','ไขมันในเลือดสูง'],
+  ['N18.3','CKD stage 3'],['N18.5','CKD stage 5'],['J44.9','COPD ถุงลมโป่งพอง'],['J45.9','Asthma หอบหืด'],
+  ['K76.0','Fatty liver ไขมันพอกตับ'],['B18.1','ไวรัสตับอักเสบ B เรื้อรัง'],['D64.9','Anemia ซีด'],
+  ['E03.9','Hypothyroid'],['E05.9','Hyperthyroid ไทรอยด์เป็นพิษ'],['M10.9','Gout เกาต์'],
+  ['A15.0','TB ปอด วัณโรค'],['K29.7','Gastritis กระเพาะอักเสบ'],['K21.9','GERD กรดไหลย้อน'],
+  ['N39.0','UTI ติดเชื้อทางเดินปัสสาวะ'],['J18.9','Pneumonia ปอดอักเสบ'],['E86','Dehydration'],
+  ['I63.9','Stroke สมองขาดเลือด'],['I61.9','ICH เลือดออกในสมอง'],['G45.9','TIA สมองขาดเลือดชั่วคราว'],
+  ['G40.9','Epilepsy ลมชัก'],['G20','Parkinson พาร์กินสัน'],['G30.9','Alzheimer สมองเสื่อม'],
+  ['F03.9','Dementia สมองเสื่อม'],['G43.9','Migraine ไมเกรน'],['G51.0','Bell’s palsy หน้าเบี้ยว'],
+  ['G62.9','Peripheral neuropathy ปลายประสาทเสื่อม'],['M54.1','Radiculopathy รากประสาทถูกกด'],
+  ['R51','Headache ปวดศีรษะ'],['R42','Dizziness เวียนศีรษะ'],['G70.0','Myasthenia gravis'],['G35','Multiple sclerosis'],
+  ['K80.2','Gallstone นิ่วถุงน้ำดี'],['K81.0','Cholecystitis ถุงน้ำดีอักเสบ'],['K35.8','Appendicitis ไส้ติ่งอักเสบ'],
+  ['K40.9','Inguinal hernia ไส้เลื่อนขาหนีบ'],['C18.9','CA colon มะเร็งลำไส้ใหญ่'],['C16.9','CA stomach มะเร็งกระเพาะ'],
+  ['C22.0','HCC มะเร็งตับ'],['C50.9','CA breast มะเร็งเต้านม'],['N63','Breast lump ก้อนเต้านม'],
+  ['K64.9','Hemorrhoid ริดสีดวง'],['K92.2','GI bleed เลือดออกทางเดินอาหาร'],['N20.0','นิ่วไต'],
+  ['N40','BPH ต่อมลูกหมากโต'],['C61','CA prostate มะเร็งต่อมลูกหมาก'],['E04.1','Thyroid nodule ก้อนไทรอยด์'],
+  ['C73','CA thyroid มะเร็งไทรอยด์'],['R19.0','Abdominal mass ก้อนในท้อง'],['K57.9','Diverticular disease'],
+  ['M17.9','Knee OA เข่าเสื่อม'],['M16.9','Hip OA สะโพกเสื่อม'],['S72.0','Fracture femur กระดูกสะโพกหัก'],
+  ['S52.5','Fracture distal radius ข้อมือหัก'],['S82.3','Fracture tibia หน้าแข้งหัก'],['M54.5','Low back pain ปวดหลัง'],
+  ['M51.2','HNP หมอนรองกระดูกทับเส้น'],['M75.1','Rotator cuff ไหล่'],['M65.3','Trigger finger นิ้วล็อก'],
+  ['G56.0','CTS พังผืดทับเส้นข้อมือ'],['S83.5','ACL injury เอ็นเข่าขาด'],['M86.9','Osteomyelitis กระดูกติดเชื้อ'],
+  ['M25.5','Joint pain ปวดข้อ'],
+  ['I50.0','CHF หัวใจล้มเหลว'],['I25.1','CAD หลอดเลือดหัวใจตีบ'],['I48','AF หัวใจเต้นผิดจังหวะ'],
+  ['I35.0','Aortic stenosis ลิ้นหัวใจตีบ'],['I34.0','Mitral regurgitation ลิ้นหัวใจรั่ว'],['I42.9','Cardiomyopathy'],
+  ['I05.9','Rheumatic valve ลิ้นหัวใจรูมาติก'],['R00.2','Palpitation ใจสั่น'],['R07.4','Chest pain เจ็บหน้าอก'],
+  ['I27.0','Pulmonary HT ความดันปอดสูง'],
+  ['R16.0','Hepatomegaly ตับโต'],['R10.4','Abdominal pain ปวดท้อง'],['R59.0','Lymphadenopathy ต่อมน้ำเหลืองโต'],
+  ['R91','Abnormal CXR เงาผิดปกติในปอด'],['J90','Pleural effusion น้ำในช่องปอด'],['R18','Ascites ท้องมาน'],
+  ['N13.3','Hydronephrosis ไตบวมน้ำ'],['R31','Hematuria ปัสสาวะเป็นเลือด'],['C78.7','Liver metastasis มะเร็งกระจายตับ'],
+];
+const ICD_NAME = Object.fromEntries(ICD);
+/* pool โรคตามแผนก ใช้ตอน seed ข้อมูลสมมติ */
+const ICD_POOL = {
+  MED:['E11.9','I10','E78.5','N18.3','N18.5','J44.9','J45.9','K76.0','B18.1','D64.9','E03.9','E05.9','M10.9','A15.0','K29.7','K21.9','J18.9'],
+  NEURO:['I63.9','I61.9','G45.9','G40.9','G20','G30.9','F03.9','G43.9','G51.0','G62.9','M54.1','R51','R42','G70.0'],
+  SX:['K80.2','K81.0','K35.8','K40.9','C18.9','C16.9','C22.0','C50.9','N63','K64.9','K92.2','N20.0','N40','E04.1','C73','R19.0'],
+  ORTHO:['M17.9','M16.9','S72.0','S52.5','S82.3','M54.5','M51.2','M75.1','M65.3','G56.0','S83.5','M25.5'],
+  CARDIO:['I50.0','I25.1','I48','I35.0','I34.0','I42.9','I05.9','R00.2','R07.4','I27.0'],
+  XRAY:['R16.0','R10.4','R59.0','R91','J90','R18','N13.3','R31','C78.7','K80.2','E04.1','N63'],
+};
+const deptMeta = d => DEPT_META[d] || {ic:'🏷️', model:'แผนกที่เพิ่มใหม่'};
+const DEPT_META = {
+  MED:   {ic:'🩺', model:'นัดแบบ pool รวมแผนก ยกเว้นเคส D/C จาก ward นัดเข้าหมอเจ้าของไข้'},
+  SX:    {ic:'🔪', model:'นัดเป็นเคสประจำตัวหมอ'},
+  ORTHO: {ic:'🦴', model:'นัดเป็นเคสประจำตัวหมอ'},
+  NEURO: {ic:'🧠', model:'คลินิกเฉพาะทาง ซอยย่อยจาก MED'},
+  CARDIO:{ic:'❤️', model:'refer ขอ service เฉพาะ เช่น echo'},
+  XRAY:  {ic:'📷', model:'นัดหัตถการ/เครื่อง (resource)'}
+};
+
+function defaultTargets(){
+  const S = (days) => {
+    const o = {};
+    for (const d of DAYS) o[d] = {am: (days[d]||'').includes('am'), pm: (days[d]||'').includes('pm')};
+    return o;
+  };
+  // ตารางออกตรวจหมุนเวียน — หมอเยอะ วันซ้ำกันได้ ต่างช่วงเวลา
+  const P = [
+    {mon:'am',thu:'am'},{tue:'am',fri:'am'},{wed:'am'},{mon:'pm',thu:'pm'},{tue:'pm',fri:'pm'},
+    {wed:'pm',mon:'am'},{thu:'am',tue:'pm'},{fri:'am',wed:'am'},{mon:'am',fri:'pm'},{tue:'am',thu:'pm'}
+  ];
+  const doc = (id, dept, spec, name, sub, types, pi, capN, capR, extra) =>
+    Object.assign({id, dept, spec, kind:'doctor', name, sub, types, sched:S(P[pi%P.length]), capN, capR}, extra||{});
+  // โครงจริง: MED (gen 5 + nephro 2), NEURO 2, CARDIO (หมอ 1 + service 2), SX (gen 4 + neuro sx 1), ORTHO (gen 7 + sport 1 + spine 1)
+  return [
+    {id:'med-pool', dept:'MED', spec:'อายุรกรรมทั่วไป', kind:'pool', name:'อายุรกรรมทั่วไป (pool รวม)', sub:'นัดเข้าแผนก ไม่ระบุหมอ',
+      types:['opd','refer'], sched:S({mon:'am',tue:'am',wed:'am',thu:'am',fri:'am'}), capN:40, capR:8,
+      fields:[{id:'f1', label:'ประเภทการมา', type:'select', options:['ตรวจปกติ','มารับยา','Telemed']}]},
+    doc('med-a','MED','อายุรกรรมทั่วไป','นพ.กิตติ (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],0,12,0),
+    doc('med-b','MED','อายุรกรรมทั่วไป','พญ.รัตนา (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],1,12,0),
+    doc('med-c','MED','อายุรกรรมทั่วไป','นพ.สมชาย (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],2,12,0),
+    doc('med-d','MED','อายุรกรรมทั่วไป','พญ.ชนิดา (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],3,12,0),
+    doc('med-e','MED','อายุรกรรมทั่วไป','นพ.ภาณุวัฒน์ (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],4,12,0),
+    doc('med-nep1','MED','โรคไต (Nephro)','นพ.เกรียงไกร (ไต)','คลินิกไตเรื้อรัง',['ward','opd','refer'],5,20,4),
+    doc('med-nep2','MED','โรคไต (Nephro)','พญ.ศศิธร (ไต)','คลินิกไตเรื้อรัง',['ward','opd','refer'],6,20,4),
+    doc('sx-a','SX','ศัลยกรรมทั่วไป','นพ.ปกรณ์ (ศัลย์)','เคสประจำตัว',['ward','opd','refer'],4,25,5),
+    doc('sx-b','SX','ศัลยกรรมทั่วไป','พญ.ชลิดา (ศัลย์)','เคสประจำตัว',['ward','opd','refer'],1,25,5),
+    doc('sx-c','SX','ศัลยกรรมทั่วไป','นพ.เอกราช (ศัลย์)','เคสประจำตัว',['ward','opd','refer'],7,25,5),
+    doc('sx-d','SX','ศัลยกรรมทั่วไป','พญ.มนัสนันท์ (ศัลย์)','เคสประจำตัว',['ward','opd','refer'],8,25,5),
+    doc('sx-ns','SX','ศัลยกรรมประสาท','นพ.วิศรุต (Neuro SX)','เคสประจำตัว + รับปรึกษาผ่าตัดสมอง/ไขสันหลัง',['ward','opd','refer'],9,15,4),
+    doc('or-a','ORTHO','Ortho ทั่วไป','นพ.ธีรเดช (Ortho)','เคสประจำตัว',['ward','opd','refer'],3,30,5),
+    doc('or-b','ORTHO','Ortho ทั่วไป','นพ.วรุตม์ (Ortho)','เคสประจำตัว',['ward','opd','refer'],1,30,5),
+    doc('or-c','ORTHO','Ortho ทั่วไป','นพ.อดิศักดิ์ (Ortho)','เคสประจำตัว',['ward','opd','refer'],0,30,5),
+    doc('or-d','ORTHO','Ortho ทั่วไป','พญ.บุษบา (Ortho)','เคสประจำตัว',['ward','opd','refer'],2,30,5),
+    doc('or-e','ORTHO','Ortho ทั่วไป','นพ.คมกริช (Ortho)','เคสประจำตัว',['ward','opd','refer'],4,30,5),
+    doc('or-f','ORTHO','Ortho ทั่วไป','นพ.ศราวุธ (Ortho)','เคสประจำตัว',['ward','opd','refer'],5,30,5),
+    doc('or-g','ORTHO','Ortho ทั่วไป','พญ.ฐิติมา (Ortho)','เคสประจำตัว',['ward','opd','refer'],6,30,5),
+    doc('or-sp','ORTHO','เวชศาสตร์การกีฬา','นพ.กันตพงศ์ (Sport)','คลินิกเวชศาสตร์การกีฬา',['opd','refer'],7,20,4),
+    doc('or-spine','ORTHO','กระดูกสันหลัง','นพ.นราธิป (Spine)','คลินิกกระดูกสันหลัง',['ward','opd','refer'],8,18,4),
+    doc('nr-a','NEURO','ประสาทวิทยา','พญ.เมธาวี (Neuro)','คลินิกระบบประสาท — แยกจาก MED pool',['ward','opd','refer'],9,20,5,
+      {fields:[{id:'f1', label:'ประเภทเคสที่ส่งมา', type:'select', options:['New case','F/U เดิม','ปรับยา']}]}),
+    doc('nr-b','NEURO','ประสาทวิทยา','นพ.ปริญญ์ (Neuro)','คลินิกระบบประสาท',['ward','opd','refer'],2,20,5),
+    doc('cd-doc','CARDIO','อายุรกรรมหัวใจ','พญ.กมลชนก (Cardio)','คลินิกหัวใจ',['ward','opd','refer'],0,18,4),
+    {id:'cd-echo', dept:'CARDIO', spec:'ตรวจพิเศษหัวใจ', kind:'service', name:'Echocardiogram', sub:'สลอตผูกกับ service ไม่ใช่ตัวหมอ',
+      types:['ward','opd','refer'], sched:S({tue:'am',wed:'am'}), capN:8, capR:4},
+    {id:'cd-est', dept:'CARDIO', spec:'ตรวจพิเศษหัวใจ', kind:'service', name:'EST (exercise stress test)', sub:'สลอตผูกกับ service',
+      types:['opd','refer'], sched:S({fri:'am'}), capN:6, capR:2},
+    {id:'xr-us', dept:'XRAY', spec:'Ultrasound', kind:'resource', name:'Ultrasound ทั่วไป', sub:'สลอตผูกกับเครื่อง/คิวหัตถการ',
+      types:['ward','opd','refer'], sched:S({mon:'pm',tue:'pm',wed:'pm',thu:'pm',fri:'pm'}), capN:12, capR:4},
+    {id:'xr-iv', dept:'XRAY', spec:'Ultrasound', kind:'resource', name:'หัตถการภายใต้ U/S', sub:'เจาะ/ระบาย ตามคิวเครื่อง',
+      types:['ward','opd','refer'], sched:S({thu:'pm'}), capN:4, capR:2},
+  ];
+}
+/* target ที่ยังเปิดรับนัด (ปิดรับนัด = archive ไม่ลบ — นัด/ประวัติเก่าอ้างด้วย id ยังอยู่ครบ) */
+const activeTargets = () => state.targets.filter(t=>!t.archived);
+
+/* ---------- date helpers ---------- */
+function d2s(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function s2d(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function mondayOf(d){ const x=new Date(d); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function dowKey(s){ return ['sun','mon','tue','wed','thu','fri','sat'][s2d(s).getDay()]; }
+function fmtShort(s){ const d=s2d(s); return DAY_TH[dowKey(s)]+' '+d.getDate()+' '+TH_M[d.getMonth()]; }
+function fmtFull(s){ const d=s2d(s); return d.getDate()+' '+TH_M[d.getMonth()]+' '+(d.getFullYear()+543); }
+const TODAY = d2s(new Date());
+/* บวกเดือนแบบปฏิทินจริง (20 ส.ค. + 3 เดือน = 20 พ.ย. — เดือนสั้นเลื่อนไปวันสุดท้าย) */
+function addMonthsStr(s, n){
+  const d = s2d(s); const day = d.getDate();
+  d.setMonth(d.getMonth()+n);
+  if (d.getDate() !== day) d.setDate(0);
+  return d2s(d);
+}
+
+/* ---------- storage (fallback in-memory เมื่อ localStorage ใช้ไม่ได้) ---------- */
+let state = null;
+function lsGet(){ try{ return localStorage.getItem(LS_KEY); }catch(e){ return null; } }
+function lsSet(v){ try{ localStorage.setItem(LS_KEY, v); }catch(e){} }
+function lsDel(){ try{ localStorage.removeItem(LS_KEY); }catch(e){} }
+function defaultHolidays(){
+  return {
+    '2026-08-28':'รพ. ประกาศหยุด (ตัวอย่างเดโม)',
+    '2026-10-13':'วันนวมินทรมหาราช', '2026-10-23':'วันปิยมหาราช',
+    '2026-12-07':'ชดเชยวันพ่อแห่งชาติ', '2026-12-10':'วันรัฐธรรมนูญ',
+    '2026-12-31':'วันสิ้นปี', '2027-01-01':'วันขึ้นปีใหม่'
+  };
+}
+function load(){
+  const raw = lsGet();
+  if (raw){ try{
+    state = JSON.parse(raw);
+    if (!state.holidays) { state.holidays = defaultHolidays(); save(); }
+    return;
+  }catch(e){} }
+  state = seed();
+  state.holidays = defaultHolidays();
+  save();
+}
+function save(){ lsSet(JSON.stringify(state)); }
+function resetData(){ if(!confirm('ล้างข้อมูล mock ทั้งหมด กลับค่าเริ่มต้น?')) return; lsDel(); state=null; load(); render(); toast('รีเซ็ตข้อมูลแล้ว'); }
+
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+/* seed 6 เดือน: สัปดาห์ใกล้แน่น ไกลออกไปโล่งลง (นัด F/U ระยะยาวโปรยไว้) */
+function seed(){
+  const targets = defaultTargets();
+  const rnd = mulberry32(42);
+  const appts = [];
+  let nextId = 1, hnSeq = 1;
+  const NOTES = {
+    ward:['D/C — F/U ผล lab','post-op D14','สรุปยา D/C','F/U หลัง admit'],
+    opd:['F/U DM/HT','ปรับยา','ฟังผลตรวจ','F/U 1 เดือน','F/U 3 เดือน','F/U 6 เดือน'],
+    refer:['ปวดท้องเรื้อรัง','สงสัย CA — ขอประเมิน','ก้อนที่คอ','อ่อนแรงครึ่งซีก','ขอ echo ประเมิน EF','นิ่วถุงน้ำดี']
+  };
+  // ชื่อสมมติ — จงใจมีชื่อ/นามสกุลยาวมากปนอยู่ เพื่อ stress test layout
+  const PRE = ['นาย','นาง','น.ส.','นาย','นาง','ด.ช.','ด.ญ.'];
+  const FIRST = ['สมชาย','บัวผัน','ประยงค์','กัลยกร','ศุภชัย','จิราพร','อนันต์','วิภาวดี','ธนกฤต','ปวีณ์ธิดา',
+    'เกียรติศักดิ์','บุญมี','คำปอน','สายฝน','อรุณี','วีระพงษ์','นภัสวรรณ','จักรพันธ์','อภิญญา','ทองใบ',
+    'ศิริพรรณวดีรัตนาภรณ์','กฤษณะพงศ์เดชา','เพชรรัตน์ดารินทร์'];
+  const LAST = ['ใจดี','ศรีสุวรรณ','ทองคำ','วงศ์ษา','แก้วกันหา','มั่นคง','สิงห์คำป้อง','บุตรราช','นามวงษา','พลเยี่ยม',
+    'ประเสริฐสุขสันต์','ชัยเจริญวัฒนกุล','รัตนโชติอนันต์วงศ์','พลอยประดับเพชรรัตน์','อินทรจักรพงษ์พันธุ์'];
+  const mkName = () => PRE[Math.floor(rnd()*PRE.length)] + FIRST[Math.floor(rnd()*FIRST.length)] + ' ' + LAST[Math.floor(rnd()*LAST.length)];
+  const mkAppt = (t, date, sess, type, urgent) => {
+    // lead time (วันสั่งนัด → วันนัด): ward สั้น, refer กลาง, opd F/U ยาวได้
+    const lead = type==='ward' ? 3+Math.floor(rnd()*12)
+               : type==='refer' ? 3+Math.floor(rnd()*28)
+               : 14+Math.floor(rnd()*rnd()*170);
+    // status ของนัดในอดีต: no-show ~10% ฐาน, สูงขึ้นเมื่อ lead ยาว (>60วัน) และเคส refer (ปัญหามาผิดวัน)
+    let status = 'booked';
+    if (date < TODAY){
+      let p = 0.09;
+      if (lead > 60) p += 0.08;
+      if (type === 'refer') p += 0.06;
+      status = rnd() < p ? 'noshow' : 'done';
+    }
+    const pool = ICD_POOL[t.dept];
+    // custom field ของช่องรับนัด (เช่น ประเภทการมา) — เก็บเป็น key-value ไม่แตะโครงตาราง
+    const extra = {};
+    if (t.fields) for (const f of t.fields)
+      if (f.type==='select' && rnd()<0.95)
+        extra[f.id] = f.options[Math.floor(Math.pow(rnd(),1.5)*f.options.length)];
+    appts.push({
+      id: nextId++, hn: 'HN 68'+String(10000+hnSeq++).slice(1), pname: mkName(),
+      targetId: t.id, date, session: sess, type,
+      icd: rnd() < 0.9 ? pool[Math.floor(rnd()*pool.length)] : null,
+      note: NOTES[type][Math.floor(rnd()*NOTES[type].length)],
+      from: type==='refer' ? NET_HOSPS[Math.floor(rnd()*NET_HOSPS.length)] : null,
+      createdOn: d2s(addDays(s2d(date), -lead)),
+      status, extra,
+      urgent: !!urgent,
+      urgentReason: urgent ? URGENT_REASONS[Math.floor(rnd()*3)] : undefined,
+      approvedBy: urgent ? 'นพ.เวร (สมมติ)' : undefined
+    });
+  };
+  const start = mondayOf(addDays(s2d(TODAY), -7));
+  for (let w=0; w<27; w++){
+    for (let dd=0; dd<5; dd++){
+      const date = d2s(addDays(start, w*7+dd));
+      const dk = dowKey(date);
+      for (const t of targets){
+        const sc = t.sched[dk];
+        if (!sc) continue;
+        for (const sess of ['am','pm']){
+          if (!sc[sess]) continue;
+          let fillN, fillR;
+          if (w<=3){ fillN = 0.45+rnd()*0.45; fillR = rnd()*0.9; }
+          else if (w<=9){ fillN = 0.2+rnd()*0.4; fillR = rnd()*0.5; }
+          else { fillN = 0.04+rnd()*0.22; fillR = rnd()*0.25; }
+          // จุดที่จงใจให้เห็นปัญหา "60 คน/วัน" ช่วงใกล้ๆ
+          if (t.id==='med-pool' && dk==='wed' && w<=2){ fillN = 1.3; fillR = 1.0; }
+          if (t.id==='med-pool' && dk==='mon' && w<=2){ fillN = 0.95; }
+          if (t.id==='cd-echo' && dk==='tue' && w<=2){ fillR = 1.0; fillN = 0.9; }
+          if (t.id==='xr-us'  && dk==='thu' && w===1){ fillN = 1.1; }
+          // เกินเพดานได้ไม่เกิน hard cap (+10%) — ให้ตัวอย่างสอดคล้องกับนโยบายแทรกด่วน
+          const hmN = t.capN + Math.max(1, Math.ceil(t.capN*0.1));
+          const nN = Math.min(Math.round(t.capN * fillN), hmN);
+          const nR = t.capR ? Math.round(t.capR * fillR) : 0;
+          for (let k=0;k<nN;k++){
+            const tp = t.types.includes('opd') ? (t.types.includes('ward') && rnd()<0.25 ? 'ward':'opd')
+                      : t.types.includes('ward') ? 'ward' : 'opd';
+            mkAppt(t, date, sess, tp, k >= t.capN);  // ส่วนที่เกินเพดาน = เคสแทรกด่วน (มีเหตุผล+ผู้สั่ง)
+          }
+          for (let k=0;k<nR;k++) if (t.types.includes('refer')) mkAppt(t, date, sess, 'refer');
+        }
+      }
+    }
+  }
+  // ผู้ป่วยประจำ: คนเดียวถือหลายนัดหลายแผนก (เคส NCD สูงอายุ) — ให้หน้า "ค้นผู้ป่วย" มีของให้เห็นจริง
+  const regulars = [
+    ['HN 680001','นายบุญช่วย ทองประเสริฐสุขสันต์','3401200123456'],
+    ['HN 680002','นางสมพร ใจดี','3401200234567'],
+    ['HN 680003','นายคำปัน สิงห์คำป้อง','3401200345678'],
+    ['HN 680004','นางบัวไข รัตนโชติอนันต์วงศ์','3401200456789'],
+    ['HN 680005','นายสุพจน์ พลเยี่ยม','3401200567890'],
+  ];
+  for (const [hn,nm,cid] of regulars){
+    for (let k=0; k<6; k++){
+      const a = appts[Math.floor(rnd()*appts.length)];
+      a.hn = hn; a.pname = nm; a.cid = cid;
+    }
+  }
+  /* ---- จัดฉากเดโม (เดือนปัจจุบัน กดโชว์ได้ครบทุกระบบ) ---- */
+  // หมอลาเฉพาะวัน + นัดค้าง "ปิด · ค้าง" ระดับหมอ (25 ส.ค. พญ.เมธาวี ออกตรวจเช้าอังคาร)
+  const nr = targets.find(t=>t.id==='nr-a');
+  nr.closedDates = {'2026-08-25':'ลาประชุม (ตัวอย่างเดโม)'};
+  // นายบุญช่วย: นัดหลายแผนกในเดือนเดียว + นัดซ้อนครึ่งวันเดียวกัน (25 ส.ค. เช้า สองแผนก → ⚠)
+  const bc = ['HN 680001','นายบุญช่วย ทองประเสริฐสุขสันต์','3401200123456'];
+  for (const [tg,dd,ss] of [['med-pool','2026-08-24','am'],['med-pool','2026-08-25','am'],
+                            ['cd-echo','2026-08-25','am'],['nr-a','2026-08-27','pm'],['xr-us','2026-09-01','pm']]){
+    const a = appts.find(x=>x.targetId===tg && x.date===dd && x.session===ss && !x.cid);
+    if (a){ a.hn=bc[0]; a.pname=bc[1]; a.cid=bc[2]; }
+  }
+  // เคส refer จาก รพช. ที่ "รอออก HN" — พร้อมให้กดปุ่มออก HN โชว์ (สัปดาห์หน้า)
+  const pendingRefs = [
+    ['นางคำหวาน ศรีบุญเรือง','3450800111222','TR-680818-004','cd-echo','ขอ echo ประเมิน EF','รพช.ภูผาม่าน','I50.0'],
+    ['นายทองสุข พิมพ์ดี','3450800333444','TR-680819-011','med-pool','สงสัย CA — ขอประเมิน','รพช.สีชมพู','C16.9'],
+    ['ด.ญ.น้ำฝน แก้วใส','1459900555666','TR-680820-002','nr-a','ชักซ้ำ ขอพบ neuro','รพช.หนองเรือ','G40.9'],
+  ];
+  for (const [nm,cid,ref,tg,note,from,icd] of pendingRefs){
+    const t = targets.find(x=>x.id===tg);
+    for (let i=2; i<21; i++){
+      const ds = d2s(addDays(s2d(TODAY), i));
+      const dk = dowKey(ds); if (!DAYS.includes(dk)) continue;
+      const sess = t.sched[dk].am ? 'am' : (t.sched[dk].pm ? 'pm' : null);
+      if (!sess) continue;
+      let r=0; for (const a of appts) if (a.targetId===tg && a.date===ds && a.session===sess && a.type==='refer') r++;
+      if (r >= t.capR) continue;
+      appts.push({id:nextId++, hn:null, pname:nm, cid, refNo:ref, targetId:tg, date:ds, session:sess,
+        type:'refer', note, from, icd, createdOn:d2s(addDays(s2d(TODAY),-1)), status:'booked', extra:{}});
+      break;
+    }
+  }
+  return {targets, appts, nextId, hnSeq};
+}
+
+/* ---------- capacity helpers ---------- */
+const T = id => state.targets.find(t=>t.id===id);
+/* จุดตัดสินใจเดียวว่า "วันนี้ช่องนี้เปิดไหม" — วันหยุดกลาง + วันลาเฉพาะวันของหมอ + ตารางประจำสัปดาห์
+   ทุกปฏิทิน/auto-search วิ่งผ่านที่นี่ → เพิ่มวันหยุดจุดเดียว ระบบไม่เสนอวันหยุดให้จองทั้งแอป */
+function isOpen(t, date, sess){
+  if (state.holidays && state.holidays[date]) return false;
+  if (t.closedDates && t.closedDates[date]) return false;
+  const dk = dowKey(date);
+  return DAYS.includes(dk) && t.sched[dk] && t.sched[dk][sess];
+}
+function closedReason(t, date){
+  if (state.holidays && state.holidays[date]) return '🏛️ '+state.holidays[date];
+  if (t && t.closedDates && t.closedDates[date]) return '🚫 '+t.closedDates[date];
+  return null;
+}
+function targetOpenAnySess(t, date){ return isOpen(t,date,'am') || isOpen(t,date,'pm'); }
+function counts(tid, date, sess){
+  let n=0, r=0;
+  for (const a of state.appts) if (a.targetId===tid && a.date===date && a.session===sess && a.status!=='cancelled'){
+    if (a.type==='refer') r++; else n++;
+  }
+  return {n, r};
+}
+function sessClass(c, t){
+  const u = t.capN ? c.n/t.capN : 0;
+  if (c.n > t.capN) return 'over';
+  if (c.n >= t.capN && t.capR>0 && c.r >= t.capR) return 'over';
+  if (c.n >= t.capN || (t.capR>0 && c.r >= t.capR)) return 'full';
+  if (u >= 0.8 || (t.capR>0 && c.r/t.capR >= 0.8)) return 'warn';
+  return 'ok';
+}
+/* Auto-search แบบ Epic Cadence: หา 6 สลอตว่างแรกใกล้วันเป้า (สแกนจากเป้า −3 วัน ไปข้างหน้า 120 วัน) */
+function candidateSlots(t, bucket, targetDs){
+  const out = [];
+  const startScan = addDays(s2d(targetDs), -3);
+  for (let i=0; i<120 && out.length<6; i++){
+    const ds = d2s(addDays(startScan, i));
+    if (ds < TODAY) continue;
+    for (const sess of ['am','pm']){
+      if (!isOpen(t,ds,sess)) continue;
+      const c = counts(t.id, ds, sess);
+      const cap = bucket==='r' ? t.capR : t.capN;
+      const used = bucket==='r' ? c.r : c.n;
+      if (cap-used <= 0) continue;
+      const diff = Math.round((s2d(ds)-s2d(targetDs))/86400000);
+      out.push({ds, sess, remain:cap-used, diff});
+      if (out.length>=6) break;
+    }
+  }
+  return out;
+}
+function diffLabel(diff){
+  if (diff===0) return 'ตรงเป้า';
+  return diff>0 ? `+${diff} วัน` : `${diff} วัน`;
+}
+function monthOptionsHTML(selY, selM){
+  const now = s2d(TODAY); let h='';
+  for (let i=0;i<13;i++){
+    const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+    h += `<option value="${d.getFullYear()}-${d.getMonth()}" ${d.getFullYear()===selY&&d.getMonth()===selM?'selected':''}>${TH_M_FULL[d.getMonth()]} ${d.getFullYear()+543}</option>`;
+  }
+  return h;
+}
+function schedSummary(t){
+  const parts=[];
+  for (const dk of DAYS){
+    const s=t.sched[dk];
+    if (s.am&&s.pm) parts.push(DAY_TH[dk]+' ทั้งวัน');
+    else if (s.am) parts.push(DAY_TH[dk]+' เช้า');
+    else if (s.pm) parts.push(DAY_TH[dk]+' บ่าย');
+  }
+  return parts.join(' · ') || 'ยังไม่ตั้งวันออกตรวจ';
+}
+
+/* ---------- ui state ---------- */
+let side = 'cph';
+let tab = 'book';                                  // book | settings | admin
+let view = {page:'depts'};                         // depts | dept | target  (ฝั่ง cph)
+let netView = {page:'depts'};                      // depts | target        (ฝั่ง net)
+let cal = {y:0, m:0, sel:null};                    // เดือนที่ดู + วันที่เลือก (ใช้ร่วมสองฝั่ง)
+let iv = null;                                     // ผล "นัดตามระยะ": {label, target, cands, bucket}
+let dashHosp = null;                               // รพ. ที่กางดูรายโรคใน dashboard
+
+/* ---------- บัญชีผู้ใช้ + สิทธิ์ ---------- */
+let user = null;
+const _mem = {};  // fallback เมื่อ localStorage ใช้ไม่ได้ (เช่นเปิดแบบ sandbox)
+function lsGetK(k){ try{ const v=localStorage.getItem(k); return v!==null ? v : (_mem[k]!==undefined?_mem[k]:null); }catch(e){ return _mem[k]!==undefined?_mem[k]:null; } }
+function lsSetK(k,v){
+  if (v===null) delete _mem[k]; else _mem[k]=v;
+  try{ v===null ? localStorage.removeItem(k) : localStorage.setItem(k,v); }catch(e){}
+}
+const canBook = () => user && !['admin','net','it'].includes(user.role);
+/* แก้นัดที่มีอยู่ (ย้าย/ยกเลิก/สถานะ/ออก HN) — เข้มกว่าลงนัดใหม่:
+   ลงนัดใหม่เข้าช่องว่างทำได้ทุกแผนก (เบียดใครไม่ได้) แต่ห้ามไปขยับนัดของแผนกอื่นเด็ดขาด */
+function canModifyAppt(a){
+  if (!canBook()) return false;
+  const t = T(a.targetId); if (!t) return false;
+  if (user.role==='nurse')  return t.dept === user.dept;
+  if (user.role==='doctor') return (user.targets||[]).includes(a.targetId);
+  if (user.role==='refer')  return a.type === 'refer';
+  return false;
+}
+/* แทรกเกินเพดาน: เฉพาะ "ผู้มีชื่อรับผิดชอบ" — หมอเจ้าของช่อง หรือศูนย์ refer (เฉพาะเคส refer)
+   พยาบาลแทรกเองไม่ได้ ต้องให้หมอเจ้าของช่องกด = named authority แบบ Epic overbook permission */
+function canOverride(t, type){
+  if (!user) return false;
+  if (user.role==='doctor') return (user.targets||[]).includes(t.id);
+  if (user.role==='refer')  return type==='refer';
+  return false;
+}
+/* เพดานแข็ง: แทรกได้ไม่เกิน +10% ของเพดาน (อย่างน้อย 1) — เกินกว่านี้ระบบปฏิเสธทุกกรณี ไม่มีข้อยกเว้น */
+function hardMax(t, type){
+  return type==='refer'
+    ? t.capR + Math.max(1, Math.ceil(t.capR*0.2))
+    : t.capN + Math.max(1, Math.ceil(t.capN*0.1));
+}
+function bucketUsed(t, c, type){ return type==='refer' ? c.r : c.n; }
+function bucketCap(t, type){ return type==='refer' ? t.capR : t.capN; }
+function canEditTarget(t){
+  if (!user) return false;
+  if (user.role==='it') return true;
+  if (user.role==='doctor') return (user.targets||[]).includes(t.id);
+  if (user.role==='nurse')  return t.dept===user.dept;
+  return false;
+}
+function enterAs(uid, silent){
+  user = USERS.find(u=>u.id===uid) || null;
+  if (!user){ renderLogin(); return; }
+  lsSetK(USER_KEY, uid);
+  pin = getPin();
+  dashHosp = null; iv = null;
+  if (user.role==='net'){ side='net'; netHosp=user.hosp; netView={page:'depts'}; }
+  else side='cph';
+  document.getElementById('swCph').classList.toggle('on', side==='cph');
+  document.getElementById('swNet').classList.toggle('on', side==='net');
+  if (!silent) toast(`เข้าใช้เป็น ${user.name}`);
+  routeHome();
+}
+function routeHome(){
+  if (!user) { renderLogin(); return; }
+  if (user.role==='net'){ render(); return; }
+  if (pin){  // ปักไว้ → ไปที่ปักก่อนเสมอ
+    if (pin.kind==='target' && T(pin.id)) { tab='book'; goTarget(pin.id); return; }
+    if (pin.kind==='dept') { tab='book'; goDept(pin.id); return; }
+  }
+  if (user.role==='admin'){ tab='admin'; view={page:'depts'}; render(); return; }
+  if (user.role==='it'){ tab='system'; view={page:'depts'}; render(); return; }
+  if (user.role==='doctor'){ tab='book'; goTarget(user.targets[0]); return; }
+  if (user.role==='nurse'){ tab='book'; goDept(user.dept); return; }
+  tab='book'; goDepts();
+}
+function logout(){ user=null; lsSetK(USER_KEY,null); renderLogin(); }
+function renderLogin(){
+  document.getElementById('tabs').innerHTML='';
+  document.getElementById('userChip').innerHTML='';
+  const group = (title, roles) => `
+    <div class="dephead">${title}</div>
+    <div class="tgrid">${USERS.filter(u=>roles.includes(u.role)).map(u=>`
+      <div class="tcard" onclick="enterAs('${u.id}')">
+        <div class="nm">${u.icon} ${u.name}</div>
+        <div class="sub mt">${u.desc}</div>
+      </div>`).join('')}</div>`;
+  document.getElementById('app').innerHTML = `
+    <div class="crumb"><b>เข้าใช้งานเป็นใคร?</b>
+      <span class="muted">— mock ไม่ต้องใส่รหัสผ่าน · ระบบจริงผูกกับบัญชี รพ. (AD/HOSxP) แล้วสิทธิ์ตามบทบาทมาเอง</span></div>
+    ${group('แพทย์', ['doctor'])}
+    ${group('พยาบาล / เจ้าหน้าที่ รพ.ชุมแพ', ['nurse','refer'])}
+    ${group('บริหาร / ระบบ', ['admin','it'])}
+    ${group('รพ. เครือข่าย (เห็นเฉพาะส่วน refer ของตัวเอง)', ['net'])}`;
+}
+
+/* หน้าประจำ — ผูกกับบัญชี ไม่หลงเครื่อง */
+function getPin(){ if(!user) return null; try{ return JSON.parse(lsGetK(PIN_KEY+'-'+user.id)||'null'); }catch(e){ return null; } }
+let pin = null;
+function setPinState(p){
+  pin = p;
+  if (user) lsSetK(PIN_KEY+'-'+user.id, p?JSON.stringify(p):null);
+  render();
+  toast(p ? `📌 ปักเป็นหน้าแรกของ ${user.name} แล้ว` : 'เลิกปักหน้าแรกแล้ว');
+}
+function pinToggle(kind, id){
+  const isPinned = pin && pin.kind===kind && pin.id===id;
+  setPinState(isPinned ? null : {kind, id});
+}
+function pinBtn(kind, id, label){
+  if (!user || user.role==='net') return '';
+  const isPinned = pin && pin.kind===kind && pin.id===id;
+  return `<button class="sbtn ${isPinned?'teal':''}" onclick="pinToggle('${kind}','${id}')">📌 ${isPinned ? 'หน้าแรกของฉัน — เลิกปัก' : (label||'ปักเป็นหน้าแรกของฉัน')}</button>`;
+}
+let netHosp = NET_HOSPS[0];
+let weekAnchor = d2s(mondayOf(s2d(TODAY)));
+{ const t=s2d(TODAY); cal.y=t.getFullYear(); cal.m=t.getMonth(); }
+
+function setSide(s){
+  if (user && user.role==='net') s='net';   // บัญชี รพช. ล็อกอยู่ฝั่งตัวเอง
+  side = s;
+  document.getElementById('swCph').classList.toggle('on', s==='cph');
+  document.getElementById('swNet').classList.toggle('on', s==='net');
+  render();
+}
+function setTab(t){ tab=t; render(); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2400); }
+function openModal(html){ document.getElementById('modalBox').innerHTML = html; document.getElementById('ovl').classList.add('show'); }
+function closeModal(){ document.getElementById('ovl').classList.remove('show'); }
+
+/* ---------- ICD-10 autocomplete (ค้นได้ทั้งรหัสและชื่อโรค ไทย/อังกฤษ) ---------- */
+function icdFieldHTML(id, preset){
+  const val = preset ? preset+' — '+(ICD_NAME[preset]||'') : '';
+  return `<label class="f icdwrap">โรค / ICD-10 <span style="font-weight:400">(พิมพ์ค้นได้ เช่น stroke, I63, เบาหวาน)</span>
+    <input id="${id}" autocomplete="off" value="${val}" data-code="${preset||''}"
+      oninput="icdFilter('${id}')" onfocus="icdFilter('${id}')">
+    <div class="icdlist" id="${id}-list"></div></label>`;
+}
+function icdFilter(id){
+  const inp = document.getElementById(id);
+  const list = document.getElementById(id+'-list');
+  inp.dataset.code = '';                     // พิมพ์ใหม่ = ล้างรหัสที่เลือกไว้
+  const q = inp.value.trim().toLowerCase();
+  if (!q){ list.style.display='none'; return; }
+  const hits = ICD.filter(([c,n]) => c.toLowerCase().startsWith(q) || n.toLowerCase().includes(q)).slice(0,8);
+  if (!hits.length){ list.style.display='none'; return; }
+  list.innerHTML = hits.map(([c,n]) => `<button type="button" onclick="icdPick('${id}','${c}')"><b>${c}</b> — ${n}</button>`).join('');
+  list.style.display = 'block';
+}
+function icdPick(id, code){
+  const inp = document.getElementById(id);
+  inp.value = code+' — '+ICD_NAME[code];
+  inp.dataset.code = code;
+  document.getElementById(id+'-list').style.display='none';
+}
+function icdRead(id){
+  const inp = document.getElementById(id);
+  if (inp.dataset.code) return inp.dataset.code;
+  const typed = inp.value.trim().split(' ')[0].toUpperCase();
+  return ICD_NAME[typed] ? typed : null;     // เผื่อพิมพ์รหัสตรงๆ โดยไม่กดเลือก
+}
+
+/* ---------- custom fields ต่อช่องรับนัด (เก็บเป็น key-value บนตัวนัด) ---------- */
+function xfFormHTML(t, prefix){
+  if (!t.fields || !t.fields.length) return '';
+  return t.fields.map(f=>{
+    const id = prefix + f.id;
+    if (f.type==='select')
+      return `<label class="f">${f.label} <span style="font-weight:400">(ฟิลด์ของ ${t.name})</span>
+        <select id="${id}"><option value="">— ไม่ระบุ —</option>${f.options.map(o=>`<option>${o}</option>`).join('')}</select></label>`;
+    return `<label class="f">${f.label} <input id="${id}"></label>`;
+  }).join('');
+}
+function xfRead(t, prefix){
+  const out = {};
+  if (t.fields) for (const f of t.fields){
+    const el = document.getElementById(prefix + f.id);
+    if (el && el.value) out[f.id] = el.value;
+  }
+  return out;
+}
+/* ---------- ค้นผู้ป่วย: ค้น → เลือกคน → เห็นนัดทุกแผนกของคนนั้นในหน้าเดียว ---------- */
+let _psGroups = [];
+function openPatientSearch(){
+  openModal(`
+    <button class="mclose" onclick="closeModal()">✕</button>
+    <h2>🔍 ค้นผู้ป่วย</h2>
+    <input id="psQ" placeholder="HN / ชื่อ / เลขบัตรประชาชน" style="width:100%" oninput="psRun()">
+    <div id="psRes" class="mt"><p class="muted">พิมพ์อย่างน้อย 2 ตัวอักษร → เลือกคน → เห็นนัดทุกแผนกของคนนั้น</p></div>`);
+  document.getElementById('psQ').focus();
+}
+function psRun(){
+  const q = document.getElementById('psQ').value.trim().toLowerCase();
+  const box = document.getElementById('psRes');
+  if (q.length < 2){ box.innerHTML='<p class="muted">พิมพ์อย่างน้อย 2 ตัวอักษร</p>'; return; }
+  // จับกลุ่มเป็น "คน" ด้วย HN (หรือ CID/ชื่อ ถ้ายังไม่มี HN)
+  const groups = new Map();
+  for (const a of state.appts){
+    if (a.status==='cancelled') continue;
+    if (!((a.hn||'').toLowerCase().includes(q) || (a.pname||'').toLowerCase().includes(q) || (a.cid||'').includes(q))) continue;
+    const k = a.hn || (a.cid ? 'C:'+a.cid : 'N:'+(a.pname||''));
+    if (!groups.has(k)) groups.set(k, {name:a.pname||'', hn:a.hn, cid:a.cid, appts:[]});
+    const g = groups.get(k);
+    g.appts.push(a);
+    if (!g.name && a.pname) g.name = a.pname;
+  }
+  _psGroups = [...groups.values()].slice(0, 15);
+  box.innerHTML = _psGroups.length ? _psGroups.map((g,i)=>{
+    const fut = g.appts.filter(a=>a.date>=TODAY).sort((x,y)=>x.date.localeCompare(y.date));
+    const next = fut[0];
+    return `<div class="appt" style="cursor:pointer" onclick="psShow(${i})">
+      <div class="who"><div class="nm">${g.name||g.hn||'(ไม่ระบุชื่อ)'}</div>
+        <div class="sub"><span>${g.hn||''}</span>${g.cid?`<span>CID ${g.cid}</span>`:''}
+          <span class="chip opd">นัดข้างหน้า ${fut.length}</span>
+          ${next?`<span>ถัดไป: <b>${fmtShort(next.date)}</b> ${T(next.targetId)?T(next.targetId).name:''}</span>`:''}</div></div>
+      <div class="acts"><span class="muted">ดูทั้งหมด ›</span></div></div>`;
+  }).join('') : '<p class="muted">ไม่พบ</p>';
+}
+function psShow(i){
+  const g = _psGroups[i]; if (!g) return;
+  const box = document.getElementById('psRes');
+  const live = g.appts.filter(a=>a.status!=='cancelled');
+  const fut = live.filter(a=>a.date>=TODAY).sort((x,y)=>x.date.localeCompare(y.date));
+  const past = live.filter(a=>a.date<TODAY).sort((x,y)=>y.date.localeCompare(x.date)).slice(0,5);
+  const row = (a, isFut) => {
+    const t = T(a.targetId);
+    return `<div class="appt" style="${isFut?'':'opacity:.6'}">
+      <span class="chip ${a.type}">${TYPE_TH[a.type]}</span>
+      <div class="who"><div class="nm" style="font-size:13.5px">${t?t.name:'?'} <span class="muted" style="font-weight:400">(${t?t.dept:''})</span></div>
+        <div class="sub"><span><b>${fmtShort(a.date)}</b> (${SESS_TH[a.session]})</span>
+          ${a.icd?`<span class="chip icd">${a.icd} ${ICD_NAME[a.icd]||''}</span>`:''}
+          ${a.note?`<span>${a.note}</span>`:''}
+          ${!isFut?`<span class="chip ${a.status==='noshow'?'full':'ok'}">${STATUS_TH[a.status]||''}</span>`:''}</div></div>
+      <div class="acts">
+        ${isFut?`<button class="sbtn" title="พิมพ์ใบนัด" onclick="printSlip(${a.id})">🖨</button>`:''}
+        ${isFut && canModifyAppt(a) ? `<button class="sbtn teal" onclick="openMove(${a.id})">📅 ย้าย</button>
+          <button class="sbtn red" onclick="psCancel(${i},${a.id})">ยกเลิก</button>` : ''}
+        <button class="sbtn" title="ดูในปฏิทิน" onclick="closeModal(); setTab('book'); goTarget('${a.targetId}','${a.date}')">🗓</button>
+      </div></div>`;
+  };
+  box.innerHTML = `
+    <button class="sbtn" onclick="psRun()">← ผลค้นหา</button>
+    <div class="mt" style="font-size:16px; font-weight:700">${g.name||''} <span class="muted" style="font-weight:400">${g.hn||''}${g.cid?' · CID '+g.cid:''}</span></div>
+    <div class="mt"><b>นัดที่จะถึง (${fut.length})</b>${fut.length && fut.some((a,j)=>j>0 && a.date===fut[j-1].date && a.session===fut[j-1].session)?' <span class="chip full">⚠ มีนัดซ้อนครึ่งวันเดียวกัน</span>':''}</div>
+    ${fut.map(a=>row(a,true)).join('') || '<p class="muted">ไม่มี</p>'}
+    ${past.length?`<div class="mt"><b>ที่ผ่านมา (ล่าสุด ${past.length})</b></div>${past.map(a=>row(a,false)).join('')}`:''}`;
+}
+function psCancel(i, id){
+  delAppt(id);
+  psShow(i);
+}
+
+/* ---------- ใบนัด (พิมพ์) ---------- */
+const DAY_FULL = {sun:'อาทิตย์',mon:'จันทร์',tue:'อังคาร',wed:'พุธ',thu:'พฤหัสบดี',fri:'ศุกร์',sat:'เสาร์'};
+function printSlip(id){
+  const a = state.appts.find(x=>x.id===id); if(!a) return;
+  const t = T(a.targetId);
+  const d = s2d(a.date);
+  const dateFull = `วัน${DAY_FULL[dowKey(a.date)]}ที่ ${d.getDate()} ${TH_M_FULL[d.getMonth()]} พ.ศ. ${d.getFullYear()+543}`;
+  const timeTxt = a.session==='am' ? 'ช่วงเช้า 08.00 – 12.00 น.' : 'ช่วงบ่าย 13.00 – 16.00 น.';
+  const now = new Date();
+  document.getElementById('printArea').innerHTML = `
+    <div class="slip">
+      <div class="s-head"><b>โรงพยาบาลชุมแพ</b> ใบนัดตรวจ<span class="s-mock">MOCK — เอกสารตัวอย่าง</span></div>
+      <table>
+        <tr><td>ผู้ป่วย</td><td><b>${a.pname || (a.hn||'')}</b>${a.pname && a.hn ? ' · '+a.hn : ''}</td></tr>
+        ${a.hn && !a.pname ? '' : (a.hn ? '' : `<tr><td>HN</td><td>รอลงทะเบียน (นำบัตรประชาชนมาติดต่อห้องบัตร)</td></tr>`)}
+        ${a.cid ? `<tr><td>เลขบัตรประชาชน</td><td>${a.cid}</td></tr>` : ''}
+        ${a.refNo ? `<tr><td>เลข refer</td><td>${a.refNo}</td></tr>` : ''}
+        <tr><td>นัดพบ</td><td><b>${t.name}</b> (${t.dept})</td></tr>
+        <tr><td>ประเภทนัด</td><td>${TYPE_TH[a.type]}${a.from ? ' · ส่งจาก '+a.from : ''}</td></tr>
+        ${a.icd ? `<tr><td>โรค/เรื่องที่นัด</td><td>${a.icd} — ${ICD_NAME[a.icd]||''}</td></tr>` : ''}
+        ${a.note ? `<tr><td>หมายเหตุ</td><td>${a.note}</td></tr>` : ''}
+      </table>
+      <div class="s-date">📅 ${dateFull}<br>${timeTxt}</div>
+      <div class="s-note">คำแนะนำ: มาก่อนเวลานัดอย่างน้อย 30 นาที · นำบัตรประชาชนและใบนัดนี้มาด้วยทุกครั้ง ·
+        หากมาตามนัดไม่ได้ กรุณาติดต่อเลื่อนนัดล่วงหน้า เพื่อให้สิทธิ์คิวแก่ผู้ป่วยรายอื่น</div>
+      <div class="s-foot">พิมพ์เมื่อ ${now.getDate()} ${TH_M[now.getMonth()]} ${now.getFullYear()+543} · โดย ${user?user.name:'-'}</div>
+    </div>`;
+  window.print();
+}
+
+/* ตัวระบุผู้ป่วย: มี HN โชว์ HN · refer จาก รพช. ยังไม่มี HN → โชว์ชื่อ+CID */
+function apptIdent(a){
+  if (a.hn) return `<span class="hn">${a.hn}</span>`;
+  return `<span class="hn">${a.pname||'(ไม่ระบุชื่อ)'}</span>${a.cid?`<span class="muted" style="font-size:12px"> CID ${a.cid}</span>`:''}${a.refNo?`<span class="muted" style="font-size:12px"> · ${a.refNo}</span>`:''}`;
+}
+function openHnFill(id){
+  const a = guardAppt(id); if(!a) return;
+  openModal(`
+    <button class="mclose" onclick="closeModal()">✕</button>
+    <h2>ออก HN — ${a.pname||''}</h2>
+    <p class="muted">${a.cid?'CID '+a.cid+' · ':''}${a.refNo?a.refNo+' · ':''}refer จาก ${a.from||''} — ลงทะเบียน/ค้นใน HOSxP แล้วกรอก HN ชุมแพ</p>
+    <label class="f">HN <input id="fillHn" placeholder="HN 6812345"></label>
+    <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="saveHnFill(${id})">✔ บันทึก</button></div>`);
+  document.getElementById('fillHn').focus();
+}
+function saveHnFill(id){
+  const a = guardAppt(id); if(!a) return;
+  const hn = document.getElementById('fillHn').value.trim();
+  if (!hn){ toast('ใส่ HN ก่อน'); return; }
+  a.hn = hn;
+  save(); closeModal(); render(); toast(`ผูก HN ${hn} ให้ ${a.pname||'เคส refer'} แล้ว`);
+}
+function xfChips(t, a){
+  if (!a.extra || !t.fields) return '';
+  return t.fields.filter(f=>a.extra[f.id])
+    .map(f=>`<span class="chip kind" style="background:#e9eef8;color:#33418e">${a.extra[f.id]}</span>`).join(' ');
+}
+/* สรุปยอดต่อครึ่งวัน เช่น "มารับยา 12 · Telemed 5" — หัวใจของการจัดกำลังคน NCD */
+function xfTally(t, list){
+  if (!t.fields) return '';
+  return t.fields.filter(f=>f.type==='select').map(f=>{
+    const m = {};
+    for (const a of list) if (a.extra && a.extra[f.id]) m[a.extra[f.id]] = (m[a.extra[f.id]]||0)+1;
+    const parts = f.options.filter(o=>m[o]).map(o=>`${o} <b>${m[o]}</b>`);
+    return parts.length ? `<div class="muted" style="margin-top:4px">${f.label}: ${parts.join(' · ')}</div>` : '';
+  }).join('');
+}
+
+function render(){
+  if (!user){ renderLogin(); return; }
+  // header: ป้ายผู้ใช้ + ปุ่มสลับ · รพช. ไม่เห็นสวิตช์ฝั่ง
+  document.getElementById('userChip').innerHTML =
+    `<span style="font-size:13.5px">${user.icon} <b>${user.name}</b></span>
+     <button class="hbtn ghost" onclick="logout()" style="margin-left:6px">สลับผู้ใช้</button>`;
+  document.getElementById('sideSwitch').style.display = user.role==='net' ? 'none' : '';
+  document.getElementById('btnSearch').style.display = (side==='cph' && user.role!=='net') ? '' : 'none';
+  const tabs = document.getElementById('tabs');
+  if (side==='cph'){
+    const tabList = [['book','📅 นัดหมาย'], ['settings','⚙️ ตั้งค่าออกตรวจ']];
+    if (user.role==='it') tabList.push(['system','🛠️ จัดการระบบ']);
+    tabList.push(['admin','📊 ภาพรวมบริหาร']);
+    tabs.innerHTML = tabList.map(([k,l])=>`<button class="${tab===k?'on':''}" onclick="setTab('${k}')">${l}</button>`).join('');
+    if (tab==='book') renderBook();
+    else if (tab==='settings') renderSettings();
+    else if (tab==='system') renderSystem();
+    else renderAdmin();
+  } else {
+    tabs.innerHTML = `<button class="on">🏥 จองสลอต refer (มุมมอง รพช.)</button>`;
+    renderNet();
+  }
+}
+
+/* ================= ฝั่งชุมแพ: นัดหมาย (drill-down) ================= */
+function goDepts(){ view={page:'depts'}; iv=null; render(); }
+function goDept(dept){ view={page:'dept', dept}; iv=null; render(); }
+function goTarget(tid, dateSel){
+  view={page:'target', tid}; iv=null;
+  if (dateSel){ const d=s2d(dateSel); cal={y:d.getFullYear(), m:d.getMonth(), sel:dateSel}; }
+  else { const d=s2d(TODAY); cal={y:d.getFullYear(), m:d.getMonth(), sel:null}; }
+  render();
+}
+function calMove(dir){
+  cal.m += dir;
+  if (cal.m<0){ cal.m=11; cal.y--; } if (cal.m>11){ cal.m=0; cal.y++; }
+  cal.sel=null; render();
+}
+function calSel(ds){ cal.sel=ds; render(); }
+function calJump(v){ const [y,m]=v.split('-').map(Number); cal.y=y; cal.m=m; cal.sel=null; render(); }
+function calToday(){ const d=s2d(TODAY); cal={y:d.getFullYear(), m:d.getMonth(), sel:TODAY}; render(); }
+
+/* ---------- นัดตามระยะ (interval-first, แบบ Epic auto-search) ---------- */
+function pickInterval(unit, n, label, tid, bucket){
+  const t = T(tid);
+  const target = unit==='m' ? addMonthsStr(TODAY, n) : d2s(addDays(s2d(TODAY), n));
+  iv = {label, target, bucket, cands: candidateSlots(t, bucket, target)};
+  const td = s2d(target); cal.y=td.getFullYear(); cal.m=td.getMonth(); cal.sel=null;
+  render();
+}
+function pickCustom(tid, bucket){
+  const n = Number(document.getElementById('ivN').value)||0;
+  const u = document.getElementById('ivU').value;
+  if (n<=0){ toast('ใส่จำนวนก่อน'); return; }
+  const label = 'F/U '+n+' '+(u==='d'?'วัน':u==='w'?'สัปดาห์':'เดือน');
+  pickInterval(u==='m'?'m':'d', u==='w'?n*7:n, label, tid, bucket);
+}
+const IV_CHIPS = [['d',7,'1 สัปดาห์'],['d',14,'2 สัปดาห์'],['m',1,'1 เดือน'],['m',2,'2 เดือน'],['m',3,'3 เดือน'],['m',6,'6 เดือน']];
+function ivPanelHTML(tid, bucket, pickAction){
+  let chips = bucket==='r'
+    ? `<button class="bigbtn ${iv&&iv.label==='เร็วที่สุด'?'sel':''}" onclick="pickInterval('d',0,'เร็วที่สุด','${tid}','r')">⚡ เร็วที่สุด</button> `
+    : '';
+  chips += IV_CHIPS.map(([u,n,l])=>
+    `<button class="bigbtn ivchip ${iv&&iv.label==='F/U '+l?'sel':''}" onclick="pickInterval('${u}',${n},'F/U ${l}','${tid}','${bucket}')">${l}</button>`).join(' ');
+  let result='';
+  if (iv){
+    result = `<div class="mt"><span class="muted">เป้า: ${fmtShort(iv.target)} ${fmtFull(iv.target).split(' ').pop()} (${iv.label}) — สลอตว่างใกล้เป้าที่สุด:</span></div>
+      <div class="row mt">${iv.cands.length ? iv.cands.map(cd=>`
+        <button class="bigbtn ${cd.diff===0?'sel':''}" onclick="${pickAction(cd)}">
+          ${fmtShort(cd.ds)} · ${SESS_TH[cd.sess]}
+          <span style="display:block;font-size:11.5px;font-weight:400">${diffLabel(cd.diff)} · เหลือ ${cd.remain}</span>
+        </button>`).join('') : '<span class="chip full">ไม่มีสลอตว่างใน 4 เดือนหลังเป้า — ปรับเพดานหรือเลือกช่องอื่น</span>'}</div>`;
+  }
+  return `<div class="card" style="border-color:var(--teal)">
+    <b>⚡ นัดตามระยะ</b> <span class="muted">หมอสั่ง F/U กี่เดือน กดเลย — ระบบหาวันออกตรวจที่ว่างใกล้เป้าให้</span>
+    <div class="row mt">${chips}</div>
+    <div class="row mt"><input id="ivN" type="number" min="1" style="width:70px" placeholder="เช่น 5">
+      <select id="ivU"><option value="d">วัน</option><option value="w">สัปดาห์</option><option value="m" selected>เดือน</option></select>
+      <button class="sbtn teal" onclick="pickCustom('${tid}','${bucket}')">🔍 หาวัน</button></div>
+    ${result}</div>`;
+}
+
+function renderBook(){
+  if (view.page==='depts') return renderDepts();
+  if (view.page==='dept') return renderDept(view.dept);
+  return renderTarget(view.tid);
+}
+
+function renderDepts(){
+  const depts = [...new Set(activeTargets().map(t=>t.dept))];
+  const pinTgt = pin && pin.kind==='target' && T(pin.id);
+  const pinBanner = pin ? `
+    <div class="banner" style="cursor:pointer" onclick="${pin.kind==='target'?`goTarget('${pin.id}')`:`goDept('${pin.id}')`}">
+      📌 บัญชีนี้ปักหน้าแรกไว้ที่ <b>${pin.kind==='target' ? (pinTgt?pinTgt.name:'') : pin.id}</b> — กดเพื่อเข้าเลย</div>` : '';
+  document.getElementById('app').innerHTML = `
+    ${pinBanner}
+    <div class="crumb"><b>นัดคนไข้เข้าแผนกไหน?</b></div>
+    <div class="deptgrid">${depts.map(d=>{
+      // สรุปวันนี้ของแผนก
+      let booked=0, cap=0;
+      const list = activeTargets().filter(t=>t.dept===d);
+      for (const t of list)
+        for (const sess of ['am','pm']) if (isOpen(t,TODAY,sess)){
+          const c=counts(t.id,TODAY,sess); booked+=c.n+c.r; cap+=t.capN+t.capR;
+        }
+      const m = deptMeta(d);
+      return `<div class="deptcard" onclick="goDept('${d}')">
+        <div class="ic">${m.ic}</div>
+        <div class="nm">${d} <span class="muted" style="font-size:13px; font-weight:400">· ${list.length} ช่อง</span></div>
+        <div class="model">${m.model}</div>
+        <div class="today">${cap? `วันนี้: <b>${booked}/${cap}</b>` : '<span class="muted">วันนี้ไม่มีคลินิก</span>'}</div>
+      </div>`;}).join('')}</div>`;
+}
+
+let deptQ = '';
+function setDeptQ(v){ deptQ = v.trim().toLowerCase(); renderDept(view.dept, true); }
+function renderDept(dept, keepQ){
+  if (!keepQ) deptQ = '';
+  let list = activeTargets().filter(t=>t.dept===dept);
+  const total = list.length;
+  if (deptQ) list = list.filter(t=>(t.name+' '+(t.spec||'')).toLowerCase().includes(deptQ));
+  const specs = [...new Set(list.map(t=>t.spec||'อื่นๆ'))];
+  const tcard = t => {
+    let todayTxt='';
+    for (const sess of ['am','pm']) if (isOpen(t,TODAY,sess)){
+      const c=counts(t.id,TODAY,sess);
+      todayTxt += `<span class="chip ${sessClass(c,t)}">วันนี้ ${SESS_TH[sess]} ${c.n}/${t.capN}${t.capR?` · R ${c.r}/${t.capR}`:''}</span> `;
+    }
+    return `<div class="tcard" onclick="goTarget('${t.id}')">
+      <div class="nm">${t.name}</div>
+      <div class="sub"><span class="chip kind">${KIND_TH[t.kind]}</span> ${t.sub}</div>
+      <div class="sched">🗓 ${schedSummary(t)}</div>
+      <div class="stat">${todayTxt || '<span class="muted" style="font-weight:400">วันนี้ไม่ออกตรวจ</span>'}</div>
+    </div>`;
+  };
+  document.getElementById('app').innerHTML = `
+    <div class="crumb"><a onclick="goDepts()">แผนกทั้งหมด</a><span class="sep">›</span><b>${dept}</b>
+      <span class="muted">— ${deptMeta(dept).model}</span>
+      <span class="spacer"></span>${pinBtn('dept', dept, 'ปักแผนกนี้เป็นหน้าประจำ')}</div>
+    ${total>6 ? `<div class="row" style="margin-bottom:10px">
+      <input value="${deptQ}" placeholder="🔍 ค้นชื่อหมอ / สาขา (มี ${total} ช่อง)" style="width:320px"
+        oninput="setDeptQ(this.value)"></div>` : ''}
+    ${list.length ? specs.map(sp=>`
+      <div class="dephead">${sp} <span class="muted" style="font-weight:400">(${list.filter(t=>(t.spec||'อื่นๆ')===sp).length})</span></div>
+      <div class="tgrid">${list.filter(t=>(t.spec||'อื่นๆ')===sp).map(tcard).join('')}</div>`).join('')
+    : '<p class="muted">ไม่พบตามคำค้น</p>'}`;
+  if (deptQ){ const inp=document.querySelector('.crumb + .row input'); if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }
+}
+
+function renderTarget(tid){
+  const t = T(tid);
+  const monthName = TH_M_FULL[cal.m]+' '+(cal.y+543);
+  // month grid
+  const firstDow = new Date(cal.y, cal.m, 1).getDay();
+  const daysIn = new Date(cal.y, cal.m+1, 0).getDate();
+  let cells = ['อา','จ','อ','พ','พฤ','ศ','ส'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for (let i=0;i<firstDow;i++) cells += '<div class="mcell off"></div>';
+  for (let d=1; d<=daysIn; d++){
+    const ds = d2s(new Date(cal.y, cal.m, d));
+    const open = targetOpenAnySess(t, ds);
+    if (!open){
+      const cr = closedReason(t, ds);
+      const pending = state.appts.filter(a=>a.targetId===t.id && a.date===ds && a.status!=='cancelled').length;
+      if (pending > 0)  // วันปิด (หยุด/ลา) แต่มีนัดค้าง — ต้องมองเห็นและกดเข้าไปย้ายได้ ห้ามเป็นนัดล่องหน
+        cells += `<div class="mcell closed ${ds===TODAY?'today':''}" style="cursor:pointer; border-color:var(--red)" onclick="calSel('${ds}')">
+          <span class="d">${d}</span><div class="mpill over">ปิด · ค้าง ${pending}</div></div>`;
+      else
+        cells += `<div class="mcell closed ${ds===TODAY?'today':''}" ${cr?`title="${cr}"`:''}><span class="d">${d}</span>${cr?`<div class="mpill" style="background:#eee;color:#888">${cr.slice(0,14)}</div>`:''}</div>`;
+      continue;
+    }
+    let pills='';
+    for (const sess of ['am','pm']){
+      if (!isOpen(t,ds,sess)) continue;
+      const c = counts(tid,ds,sess);
+      const cls = sessClass(c,t);
+      pills += `<div class="mpill ${cls}">${SESS_TH[sess]} ${c.n}/${t.capN}${c.n>t.capN?' ⚠':''}${t.capR>0?` · R ${c.r}/${t.capR}`:''}</div>`;
+    }
+    const cls = ['mcell', ds===TODAY?'today':'', ds<TODAY?'past':'', ds===cal.sel?'sel':''].join(' ');
+    cells += `<div class="${cls}" onclick="calSel('${ds}')"><span class="d">${d}</span>${pills}</div>`;
+  }
+  document.getElementById('app').innerHTML = `
+    <div class="crumb"><a onclick="goDepts()">แผนกทั้งหมด</a><span class="sep">›</span>
+      <a onclick="goDept('${t.dept}')">${t.dept}</a><span class="sep">›</span>
+      <b>${t.name}</b> <span class="chip kind">${KIND_TH[t.kind]}</span>
+      <span class="muted">🗓 ${schedSummary(t)} · เพดาน ${t.capN}/ครึ่งวัน${t.capR?` · refer ${t.capR}`:''}</span>
+      <span class="spacer"></span>${pinBtn('target', tid)}</div>
+    ${canBook() ? ivPanelHTML(tid, 'n', cd=>`openQuickAdd('${tid}','${cd.ds}','${cd.sess}', iv?iv.label:'')`) : ''}
+    <div class="cols mt">
+      <div>
+        <div class="cal-head">
+          <button class="navbtn" onclick="calMove(-1)">←</button>
+          <select class="navbtn" onchange="calJump(this.value)" style="font-weight:700; font-size:15px">${monthOptionsHTML(cal.y, cal.m)}</select>
+          <button class="navbtn" onclick="calMove(1)">→</button>
+          <button class="navbtn" onclick="calToday()">วันนี้</button>
+        </div>
+        <div class="calwrap"><div class="cal-grid">${cells}</div></div>
+        <div class="legend">
+          <span><i class="dot" style="background:var(--green-soft);border:1px solid var(--green)"></i>ว่าง</span>
+          <span><i class="dot" style="background:var(--amber-soft);border:1px solid var(--amber)"></i>ใกล้เต็ม</span>
+          <span><i class="dot" style="background:var(--red-soft);border:1px solid var(--red)"></i>เต็ม</span>
+          <span><i class="dot" style="background:var(--red)"></i>เกินเพดาน</span>
+          <span><b>R</b> = โควตา refer</span>
+          <span>ช่องประ = ไม่ออกตรวจ/วันหยุด</span>
+        </div>
+      </div>
+      <div class="dayp" id="dayPanel">${cal.sel ? dayPanelHTML(t, cal.sel) : '<div class="card muted">ลงนัดเร็ว: ใช้ "นัดตามระยะ" ด้านบน · หรือกดวันในปฏิทินเพื่อดูรายชื่อ/ลงนัดวันนั้น</div>'}</div>
+    </div>`;
+}
+
+function dayPanelHTML(t, ds){
+  const outsideScope = (user.role==='nurse' && t.dept!==user.dept) ||
+                       (user.role==='doctor' && !(user.targets||[]).includes(t.id));
+  let html = `<h2>${fmtShort(ds)} ${fmtFull(ds).split(' ').pop()}</h2>`;
+  const cr = closedReason(t, ds);
+  if (cr) html += `<div class="banner" style="margin:8px 0">${cr} — วันนี้ปิดรับนัด${ds>=TODAY?' · นัดที่ค้างอยู่ต้องย้ายออก':''}</div>`;
+  if (canBook() && outsideScope)
+    html += `<p class="muted" style="margin-top:4px">🔒 นอกแผนกคุณ: ลงนัดเพิ่มเข้าช่องว่างได้ แต่ย้าย/ยกเลิกนัดเดิมไม่ได้</p>`;
+  let any=false;
+  for (const sess of ['am','pm']){
+    const list = state.appts.filter(a=>a.targetId===t.id && a.date===ds && a.session===sess && a.status!=='cancelled')
+      .sort((a,b)=> (a.type==='refer') - (b.type==='refer'));
+    const open = isOpen(t,ds,sess);
+    if (!open && !list.length) continue;   // ปิดและไม่มีนัดค้าง = ข้าม · ปิดแต่มีนัดค้าง = ต้องโชว์ให้ย้าย
+    any=true;
+    const c = counts(t.id,ds,sess);
+    html += `<div class="sessblock" ${!open?'style="border-color:var(--red)"':''}>
+      <div class="shead"><b>${SESS_TH[sess]}</b>
+        ${!open ? `<span class="chip over">ปิดรับ — ค้าง ${list.length} ราย</span>` : `
+        <span class="chip ${sessClass(c,t)}">นัดปกติ ${c.n}/${t.capN}${c.n>t.capN?' เกิน +'+(c.n-t.capN):''}</span>
+        ${t.capR>0?`<span class="chip ${c.r>=t.capR?'full':'refer'}">refer ${c.r}/${t.capR}</span>`:''}`}
+        <span class="spacer"></span>
+        ${canBook() && open ? `<button class="sbtn teal" onclick="openQuickAdd('${t.id}','${ds}','${sess}')">＋ ลงนัด</button>` : ''}
+      </div>
+      ${xfTally(t, list)}
+      ${list.map(a=>`
+        <div class="appt">
+          <span class="chip ${a.type}">${TYPE_TH[a.type]}</span>
+          <div class="who">
+            <div class="nm">${a.pname || a.hn || '(ไม่ระบุ)'}</div>
+            <div class="sub">${a.urgent?`<span class="chip over" title="${a.urgentReason||''} · สั่งโดย ${a.approvedBy||''}">🚨 แทรกด่วน</span>`:''}${a.hn ? `<span><b>${a.hn}</b></span>`
+                : `${a.cid?`<span>CID ${a.cid}</span>`:''}${a.refNo?`<span>${a.refNo}</span>`:''}<span style="color:var(--amber); font-weight:700">รอออก HN</span>`}
+              ${a.icd?`<span class="chip icd">${a.icd} ${ICD_NAME[a.icd]||''}</span>`:''}
+              ${xfChips(t,a)}${a.note?`<span>${a.note}</span>`:''}${a.from?`<span>⬅ ${a.from}</span>`:''}</div>
+          </div>
+          <div class="acts">
+            ${!a.hn && canModifyAppt(a) ? `<button class="sbtn teal" onclick="openHnFill(${a.id})">ออก HN</button>` : ''}
+            ${ds >= TODAY ? `<button class="sbtn" title="พิมพ์ใบนัด" onclick="printSlip(${a.id})">🖨</button>` : ''}
+            ${ds < TODAY
+              ? (canModifyAppt(a)
+                ? `<button class="sbtn" style="${a.status==='noshow'?'color:var(--red);border-color:var(--red)':'color:var(--green)'}" title="กดสลับ มา/ไม่มา" onclick="togStatus(${a.id})">${a.status==='noshow'?'✗ ไม่มา':'✓ มา'}</button>`
+                : `<span class="chip ${a.status==='noshow'?'full':'ok'}">${STATUS_TH[a.status]||a.status}</span>`)
+              : (canModifyAppt(a)
+                ? `<button class="sbtn" onclick="openMove(${a.id})">📅 ย้าย</button>
+                   <button class="sbtn red" onclick="delAppt(${a.id})">ยกเลิก</button>`
+                : (canBook() ? `<span class="chip kind" title="ย้าย/ยกเลิกได้เฉพาะเจ้าของแผนก">🔒</span>` : ''))}
+          </div>
+        </div>`).join('') || '<p class="muted mt">ยังไม่มีนัด</p>'}
+    </div>`;
+  }
+  if (!any) html += `<div class="card muted">วันนี้ ${t.name} ไม่ออกตรวจ</div>`;
+  return html;
+}
+
+function guardAppt(id){
+  const a = state.appts.find(x=>x.id===id);
+  if (!a) return null;
+  if (!canModifyAppt(a)){ toast('🔒 ย้าย/แก้นัดได้เฉพาะนัดของแผนก/ช่องตัวเอง'); return null; }
+  return a;
+}
+function delAppt(id){
+  const a = guardAppt(id); if(!a) return;
+  if (!confirm('ยกเลิกนัดนี้?')) return;
+  // soft-cancel: ไม่ลบทิ้ง — เก็บว่าใครยกเลิกเมื่อไหร่ สถิติ/audit ยังตามได้ (สลอตคืนเป็นว่างเพราะ counts ข้าม cancelled)
+  a.status = 'cancelled'; a.cancelledBy = user ? user.name : '-'; a.cancelledOn = TODAY;
+  save(); render(); toast('ยกเลิกนัดแล้ว — สลอตคืนเป็นว่าง (ประวัติเก็บไว้)');
+}
+function togStatus(id){
+  const a = guardAppt(id); if(!a) return;
+  a.status = a.status==='noshow' ? 'done' : 'noshow';
+  save(); render();
+}
+
+/* ---------- ลงนัดเร็วจาก day panel ---------- */
+function openQuickAdd(tid, ds, sess, noteDefault){
+  if (!canBook()) return;
+  const t = T(tid);
+  const c = counts(tid, ds, sess);
+  const typeOpts = t.types.map(tp=>{
+    const full = bucketUsed(t,c,tp) >= bucketCap(t,tp) && bucketCap(t,tp)>0;
+    const atHard = bucketUsed(t,c,tp) >= hardMax(t,tp);
+    const canOv = canOverride(t,tp) && !atHard;
+    return `<option value="${tp}" ${full&&!canOv?'disabled':''}>${TYPE_TH[tp]}${full?(canOv?' — เต็ม (แทรกด่วนได้)':(atHard?' — เต็มถึงเพดานแข็ง':' — เต็ม')):''}</option>`;
+  }).join('');
+  openModal(`
+    <button class="mclose" onclick="closeModal()">✕</button>
+    <h2>＋ ลงนัด — ${t.name}</h2>
+    <p class="muted">${fmtShort(ds)} (${SESS_TH[sess]}) · นัดปกติ ${c.n}/${t.capN}${t.capR?` · refer ${c.r}/${t.capR}`:''}</p>
+    <label class="f">ประเภทนัด <select id="qType" onchange="qTypeChanged('${tid}','${ds}','${sess}')">${typeOpts}</select></label>
+    <div id="qUrgWrap" style="display:none" class="banner">
+      🚨 <b>แทรกเกินเพดาน</b> — นับชื่อผู้สั่ง (${user?user.name:''}) และขึ้นรายงานผู้บริหาร
+      <label class="f">เกณฑ์คลินิก (บังคับเลือก)
+        <select id="qUrgReason"><option value="">— เลือกเกณฑ์ —</option>${URGENT_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></label>
+      <p class="muted" style="margin-top:4px">เพดานแข็ง: เกินได้ไม่เกิน ${hardMax(t,'opd')-t.capN} ที่ (+10%) — เต็มแล้วระบบปฏิเสธทุกกรณี</p>
+    </div>
+    <label class="f">HN <input id="qHn" placeholder="HN 6812345"></label>
+    <label class="f">ชื่อ-สกุล <input id="qPname" placeholder="ระบบจริงดึงจาก HOSxP อัตโนมัติ"></label>
+    <span id="qFromWrap" style="display:none"><label class="f">ส่งจาก <select id="qFrom">${NET_HOSPS.map(h=>`<option>${h}</option>`).join('')}</select></label></span>
+    ${icdFieldHTML('qIcd')}
+    ${xfFormHTML(t,'qx-')}
+    <label class="f">หมายเหตุสั้น <input id="qNote" value="${noteDefault||''}" placeholder="เช่น F/U DM / post-op D14"></label>
+    <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="quickSave('${tid}','${ds}','${sess}')">✔ บันทึกนัด</button></div>
+  `);
+  document.getElementById('qHn').focus();
+  qTypeChanged(tid, ds, sess);
+}
+function qTypeChanged(tid, ds, sess){
+  const t = T(tid);
+  const c = counts(tid, ds, sess);
+  const tp = document.getElementById('qType').value;
+  document.getElementById('qFromWrap').style.display = tp==='refer' ? '' : 'none';
+  const full = bucketUsed(t,c,tp) >= bucketCap(t,tp) && bucketCap(t,tp)>0;
+  document.getElementById('qUrgWrap').style.display = (full && canOverride(t,tp) && bucketUsed(t,c,tp) < hardMax(t,tp)) ? '' : 'none';
+}
+function quickSave(tid, ds, sess){
+  const t = T(tid);
+  const type = document.getElementById('qType').value;
+  const c = counts(tid, ds, sess);
+  const used = bucketUsed(t,c,type), cap = bucketCap(t,type);
+  const full = cap>0 && used >= cap;
+  let urgent = false, urgentReason = '';
+  if (full){
+    if (used >= hardMax(t,type)){ toast('🛑 ถึงเพดานแข็งแล้ว (+10%) — ระบบไม่รับเพิ่มทุกกรณี ใช้ waitlist/วันอื่น'); return; }
+    if (!canOverride(t,type)){ toast('เต็ม — แทรกได้เฉพาะหมอเจ้าของช่อง/ศูนย์ refer'); return; }
+    urgentReason = document.getElementById('qUrgReason').value;
+    if (!urgentReason){ toast('เลือกเกณฑ์คลินิกก่อน — แทรกโดยไม่มีเกณฑ์ไม่ได้'); return; }
+    urgent = true;
+  }
+  const hn = document.getElementById('qHn').value.trim();
+  if (!hn){ toast('ใส่ HN ก่อน — ระบบจริงบังคับ lookup จาก HOSxP ห้ามสร้างเอง'); return; }
+  const pname = document.getElementById('qPname').value.trim();
+  const note = document.getElementById('qNote').value.trim();
+  const from = type==='refer' ? document.getElementById('qFrom').value : null;
+  state.appts.push({id:state.nextId++, hn, pname, targetId:tid, date:ds, session:sess, type, note, from,
+    icd: icdRead('qIcd'), createdOn: TODAY, status: 'booked', extra: xfRead(t,'qx-'),
+    urgent, urgentReason: urgent?urgentReason:undefined, approvedBy: urgent?(user?user.name:''):undefined});
+  if (iv) iv.cands = candidateSlots(t, iv.bucket, iv.target);  // refresh ที่ว่างหลังลงนัด
+  const d=s2d(ds); cal.y=d.getFullYear(); cal.m=d.getMonth(); cal.sel=ds;
+  save(); closeModal(); render();
+  toast(`ลงนัด ${hn} — ${fmtShort(ds)} แล้ว`);
+}
+
+/* ---------- ย้ายนัด: mini calendar เลือกวันใหม่ ---------- */
+let mc = null; // {aid, y, m}
+function openMove(id){
+  const a = guardAppt(id); if(!a) return;
+  const d = s2d(a.date);
+  mc = {aid:id, y:d.getFullYear(), m:d.getMonth()};
+  drawMove();
+}
+function mcMove(dir){ mc.m+=dir; if(mc.m<0){mc.m=11;mc.y--;} if(mc.m>11){mc.m=0;mc.y++;} drawMove(); }
+function mcJumpMonths(n){  // ข้ามจากวันนัดเดิมทีเดียว ไม่ต้องกดทีละเดือน
+  const a = state.appts.find(x=>x.id===mc.aid); if(!a) return;
+  const d = s2d(addMonthsStr(a.date, n));
+  mc.y = d.getFullYear(); mc.m = d.getMonth();
+  drawMove();
+}
+function mcJumpWeeks(n){
+  const a = state.appts.find(x=>x.id===mc.aid); if(!a) return;
+  const d = addDays(s2d(a.date), n*7);
+  mc.y = d.getFullYear(); mc.m = d.getMonth();
+  drawMove();
+}
+function drawMove(){
+  const a = state.appts.find(x=>x.id===mc.aid); if(!a) return;
+  const t = T(a.targetId);
+  const bucket = a.type==='refer' ? 'r' : 'n';
+  openModal(`
+    <button class="mclose" onclick="closeModal()">✕</button>
+    <h2>ย้ายนัด ${a.hn} — ${t.name}</h2>
+    <p class="muted">นัดเดิม: ${fmtShort(a.date)} (${SESS_TH[a.session]}) · <span class="chip ${a.type}">${TYPE_TH[a.type]}</span> — กดช่องวันใหม่ได้เลย</p>
+    <div class="row mt"><span class="muted">เลื่อนจากนัดเดิมไปอีก:</span>
+      <button class="sbtn" onclick="mcJumpWeeks(1)">1 สัปดาห์</button>
+      <button class="sbtn" onclick="mcJumpWeeks(2)">2 สัปดาห์</button>
+      <button class="sbtn" onclick="mcJumpMonths(1)">1 เดือน</button>
+      <button class="sbtn" onclick="mcJumpMonths(2)">2 เดือน</button>
+      <button class="sbtn" onclick="mcJumpMonths(3)">3 เดือน</button>
+      <button class="sbtn" onclick="mcJumpMonths(6)">6 เดือน</button></div>
+    <div class="cal-head mt">
+      <button class="navbtn" onclick="mcMove(-1)">←</button>
+      <b>${TH_M_FULL[mc.m]} ${mc.y+543}</b>
+      <button class="navbtn" onclick="mcMove(1)">→</button>
+    </div>
+    ${miniCalHTML(t, bucket, mc.y, mc.m, (ds,sess)=>`doMove(${a.id},'${ds}','${sess}')`, a)}
+  `);
+}
+/* mini calendar: ปุ่มต่อครึ่งวัน แสดงที่ว่างเหลือ */
+function miniCalHTML(t, bucket, y, m, actionFor, skipAppt){
+  const firstDow = new Date(y, m, 1).getDay();
+  const daysIn = new Date(y, m+1, 0).getDate();
+  let cells = ['อา','จ','อ','พ','พฤ','ศ','ส'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for (let i=0;i<firstDow;i++) cells += '<div class="mc-cell off"></div>';
+  for (let d=1; d<=daysIn; d++){
+    const ds = d2s(new Date(y, m, d));
+    const past = ds < TODAY;
+    if (past || !targetOpenAnySess(t, ds)){
+      cells += `<div class="mc-cell ${past?'off':'closed'}"><span class="d">${d}</span></div>`; continue;
+    }
+    let btns='';
+    for (const sess of ['am','pm']){
+      if (!isOpen(t,ds,sess)) continue;
+      const c = counts(t.id,ds,sess);
+      const cap = bucket==='r' ? t.capR : t.capN;
+      const used = bucket==='r' ? c.r : c.n;
+      const remain = cap-used;
+      const isCur = skipAppt && skipAppt.date===ds && skipAppt.session===sess;
+      const cls = remain<=0?'':(remain<=Math.ceil(cap*0.2)?'warn':'ok');
+      btns += `<button class="${cls}" ${remain<=0||isCur?'disabled':''} onclick="${actionFor(ds,sess)}">${SESS_TH[sess]}${isCur?' ปัจจุบัน':(remain>0?' ว่าง '+remain:' เต็ม')}</button>`;
+    }
+    cells += `<div class="mc-cell"><span class="d">${d}</span>${btns}</div>`;
+  }
+  return `<div class="mc-grid">${cells}</div>`;
+}
+function doMove(id, date, sess){
+  const a = guardAppt(id); if(!a) return;
+  const old = fmtShort(a.date);
+  a.date = date; a.session = sess;
+  save(); closeModal();
+  cal.sel = date; const d=s2d(date); cal.y=d.getFullYear(); cal.m=d.getMonth();
+  render();
+  toast(`ย้ายนัด ${a.hn}: ${old} → ${fmtShort(date)} แล้ว`);
+}
+
+/* ================= ตั้งค่าออกตรวจ ================= */
+function renderSettings(){
+  // เห็นเฉพาะที่เกี่ยวกับตัวเอง: หมอ = ของตัวเอง · พยาบาล = แผนกตัวเอง · บริหาร = ทั้งหมด (อ่านอย่างเดียว)
+  let vis, note;
+  if (user.role==='doctor'){ vis = activeTargets().filter(t=>(user.targets||[]).includes(t.id)); note='คุณเห็นเฉพาะช่องรับนัดของตัวเอง'; }
+  else if (user.role==='nurse'){ vis = activeTargets().filter(t=>t.dept===user.dept); note=`คุณเห็นเฉพาะแผนก ${user.dept}`; }
+  else if (user.role==='admin'){ vis = activeTargets(); note='บริหารเห็นทั้งหมดแบบอ่านอย่างเดียว'; }
+  else if (user.role==='it'){ vis = activeTargets(); note='IT แก้ได้ทุกช่อง (ช่องที่ปิดรับนัดจัดการในแท็บจัดการระบบ)'; }
+  else { vis = []; note='บทบาทนี้ไม่มีสิทธิ์ตั้งค่าออกตรวจ'; }
+  if (!vis.length){
+    document.getElementById('app').innerHTML = `<div class="card muted">🔒 ${note}</div>`;
+    return;
+  }
+  const depts = [...new Set(vis.map(t=>t.dept))];
+  document.getElementById('app').innerHTML = `
+    <div class="banner">จุดสำคัญ: แพทย์/แผนก <b>กำหนดวันออกตรวจและเพดานของตัวเองได้เอง</b> — แก้แล้วปฏิทินทุกหน้าจอเปลี่ยนตามทันที · เพดาน refer แยกจากนัดปกติ เต็มคือเต็ม ไม่กินที่กัน · 🔒 ${note}</div>
+    ${depts.map(d=>`
+      <div class="dephead">${deptMeta(d).ic} ${d} <span class="muted" style="font-weight:400">— ${deptMeta(d).model}</span></div>
+      <div class="setgrid">${vis.filter(t=>t.dept===d).map(t=>settingCard(t)).join('')}</div>`).join('')}`;
+}
+function settingCard(t){
+  const ed = canEditTarget(t);
+  const dis = ed ? '' : 'disabled';
+  const rows = DAYS.map(dk=>`
+    <tr><td>${DAY_TH[dk]}</td>
+      <td><input type="checkbox" ${dis} ${t.sched[dk].am?'checked':''} onchange="togSched('${t.id}','${dk}','am',this.checked)"></td>
+      <td><input type="checkbox" ${dis} ${t.sched[dk].pm?'checked':''} onchange="togSched('${t.id}','${dk}','pm',this.checked)"></td>
+    </tr>`).join('');
+  return `<div class="card" style="${ed?'':'opacity:.75'}">
+    <div style="font-weight:700">${t.name} <span class="chip kind">${KIND_TH[t.kind]}</span>
+      ${ed?'':'<span class="chip kind">🔒 ดูอย่างเดียว</span>'}</div>
+    <div class="muted">${t.sub}</div>
+    <div class="row" style="align-items:flex-start; gap:20px">
+      <table class="sched"><tr><th>วัน</th><th>เช้า</th><th>บ่าย</th></tr>${rows}</table>
+      <div>
+        <div class="capline">เพดานนัดปกติ/ครึ่งวัน <input type="number" min="0" ${dis} value="${t.capN}" onchange="setCap('${t.id}','capN',this.value)"></div>
+        <div class="capline">โควตา refer/ครึ่งวัน <input type="number" min="0" ${dis} value="${t.capR}" onchange="setCap('${t.id}','capR',this.value)"></div>
+        <p class="muted mt">รับ: ${t.types.map(x=>`<span class="chip ${x}">${TYPE_TH[x]}</span>`).join(' ')}</p>
+      </div>
+    </div>
+    ${ed ? `<div class="mt" style="border-top:1px dashed var(--line); padding-top:8px">
+      <b style="font-size:13.5px">ปิดเฉพาะวัน (ลา / ประชุม / OR)</b>
+      <span class="muted">— ไม่กระทบตารางประจำสัปดาห์</span>
+      ${Object.entries(t.closedDates||{}).sort().map(([d,why])=>`
+        <div class="row mt"><span class="chip full">${fmtShort(d)}</span><span class="muted" style="font-size:13px">${why}</span>
+          <button class="sbtn" onclick="rmClosedDate('${t.id}','${d}')">เปิดกลับ</button></div>`).join('')}
+      <div class="row mt">
+        <input type="date" id="cd-${t.id}" style="font-size:13px">
+        <input id="cdw-${t.id}" placeholder="เหตุผล เช่น ลาประชุม" style="width:140px; font-size:13px">
+        <button class="sbtn teal" onclick="addClosedDate('${t.id}')">ปิดวันนี้</button>
+      </div>
+    </div>
+    <div class="mt" style="border-top:1px dashed var(--line); padding-top:8px">
+      <b style="font-size:13.5px">ฟิลด์เก็บเพิ่มของช่องนี้</b>
+      <span class="muted">(สูงสุด 5 · dropdown เท่านั้นที่รวมสถิติได้ — ระบบกลางไม่แตะ ไม่พังฐานข้อมูล)</span>
+      ${(t.fields||[]).map((f,i)=>`
+        <div class="row mt"><span class="chip kind">${f.type==='select'?'dropdown':'ข้อความ'}</span>
+          <b style="font-size:13.5px">${f.label}</b>
+          <span class="muted">${f.options?f.options.join(' / '):''}</span>
+          <button class="sbtn red" onclick="delField('${t.id}',${i})">ลบ</button></div>`).join('')}
+      ${(t.fields||[]).length<5 ? `
+      <div class="row mt">
+        <input id="nfL-${t.id}" placeholder="ชื่อฟิลด์ เช่น ประเภทการมา" style="width:170px; font-size:13px">
+        <select id="nfT-${t.id}" style="font-size:13px"><option value="select">dropdown</option><option value="text">ข้อความ</option></select>
+        <input id="nfO-${t.id}" placeholder="ตัวเลือกคั่นด้วย , เช่น รับยา,Telemed" style="flex:1; min-width:150px; font-size:13px">
+        <button class="sbtn teal" onclick="addField('${t.id}')">＋ เพิ่ม</button>
+      </div>` : '<p class="muted mt">ครบ 5 ฟิลด์แล้ว</p>'}
+    </div>` : ''}</div>`;
+}
+function addField(tid){
+  if (!guardEdit(tid)) return;
+  const t = T(tid);
+  const label = document.getElementById('nfL-'+tid).value.trim();
+  const type = document.getElementById('nfT-'+tid).value;
+  const opts = document.getElementById('nfO-'+tid).value.split(',').map(s=>s.trim()).filter(Boolean);
+  if (!label){ toast('ใส่ชื่อฟิลด์ก่อน'); return; }
+  if (type==='select' && opts.length<2){ toast('dropdown ต้องมีตัวเลือกอย่างน้อย 2 ตัว'); return; }
+  if (!t.fields) t.fields = [];
+  t.fields.push({id:'x'+(state.nextId++), label, type, options: type==='select'?opts:undefined});
+  save(); render(); toast(`เพิ่มฟิลด์ "${label}" ให้ ${t.name} แล้ว — จะโผล่ในฟอร์มลงนัดของช่องนี้เท่านั้น`);
+}
+function delField(tid, i){
+  if (!guardEdit(tid)) return;
+  const t = T(tid);
+  if (!confirm(`ลบฟิลด์ "${t.fields[i].label}"? (ข้อมูลที่เก็บไว้แล้วในนัดเดิมยังอยู่)`)) return;
+  t.fields.splice(i,1);
+  save(); render(); toast('ลบฟิลด์แล้ว');
+}
+function guardEdit(tid){
+  if (canEditTarget(T(tid))) return true;
+  toast('🔒 สิทธิ์ไม่พอ — แก้ได้เฉพาะช่องรับนัดของตัวเอง'); render(); return false;
+}
+function addClosedDate(tid){
+  if (!guardEdit(tid)) return;
+  const t = T(tid);
+  const d = document.getElementById('cd-'+tid).value;
+  const why = document.getElementById('cdw-'+tid).value.trim() || 'ปิดรับนัด';
+  if (!d){ toast('เลือกวันที่ก่อน'); return; }
+  const pending = state.appts.filter(a=>a.targetId===tid && a.date===d && a.status!=='cancelled' && a.date>=TODAY).length;
+  if (pending > 0 && !confirm(`วันนั้นมีนัดค้างอยู่ ${pending} ราย — ปิดแล้วต้องตามย้ายออกให้หมด (ปฏิทินจะโชว์ "ปิด · ค้าง" สีแดงจนกว่าจะย้ายครบ)\nยืนยันปิดวัน?`)) return;
+  if (!t.closedDates) t.closedDates = {};
+  t.closedDates[d] = why;
+  save(); render();
+  toast(pending>0 ? `ปิด ${fmtShort(d)} แล้ว — มีนัดค้าง ${pending} รายรอย้าย` : `ปิด ${fmtShort(d)} แล้ว`);
+}
+function rmClosedDate(tid, d){
+  if (!guardEdit(tid)) return;
+  delete T(tid).closedDates[d];
+  save(); render(); toast(`เปิด ${fmtShort(d)} กลับแล้ว`);
+}
+function togSched(tid,dk,sess,val){ if(!guardEdit(tid)) return; T(tid).sched[dk][sess]=val; save(); toast('บันทึกตารางออกตรวจแล้ว'); }
+function setCap(tid,key,val){ if(!guardEdit(tid)) return; T(tid)[key]=Math.max(0,Number(val)||0); save(); toast('บันทึกเพดานแล้ว'); }
+
+/* ================= จัดการระบบ (IT) ================= */
+function renderSystem(){
+  if (user.role!=='it'){ document.getElementById('app').innerHTML = '<div class="card muted">🔒 เฉพาะ IT / ผู้ดูแลระบบ</div>'; return; }
+  const depts = [...new Set(state.targets.map(t=>t.dept))];
+  const futureCount = tid => state.appts.filter(a=>a.targetId===tid && a.date>=TODAY).length;
+  const specsOf = d => [...new Set(state.targets.filter(t=>t.dept===d && t.spec).map(t=>t.spec))];
+  document.getElementById('app').innerHTML = `
+    <div class="banner">กติกาความปลอดภัยข้อมูล (ให้ IT ระบบจริงยึดตาม): ทุกนัดอ้างช่องรับนัดด้วย <b>id</b> ไม่ใช่ชื่อ →
+      เปลี่ยนชื่อ/ย้ายสาขาได้โดยประวัติไม่ขาด · <b>ห้ามลบช่องที่เคยมีนัด</b> — ใช้ "ปิดรับนัด" แทน (ประวัติ/สถิติเก่าอยู่ครบ) ·
+      เพิ่มหมอใหม่ = เพิ่มแถวเดียว ไม่แตะโครงตาราง</div>
+    <div class="card">
+      <b>＋ เพิ่มช่องรับนัดใหม่ (หมอ / pool / service / เครื่อง)</b>
+      <div class="row mt">
+        <label class="f" style="margin:0">แผนก
+          <select id="syDeptSel" onchange="document.getElementById('syDeptNew').style.display=this.value==='__new'?'':'none'">
+            ${depts.map(d=>`<option>${d}</option>`).join('')}
+            <option value="__new">➕ สร้างแผนกใหม่…</option>
+          </select></label>
+        <input id="syDeptNew" placeholder="ชื่อแผนกใหม่ เช่น GYNE" style="display:none; width:130px; align-self:flex-end">
+        <label class="f" style="margin:0">สาขาย่อย
+          <select id="sySpecSel" onchange="document.getElementById('sySpecNew').style.display=this.value==='__new'?'':'none'">
+            <option value="">— ไม่ระบุ —</option>
+            ${[...new Set(state.targets.map(t=>t.spec).filter(Boolean))].map(s=>`<option>${s}</option>`).join('')}
+            <option value="__new">➕ สาขาใหม่…</option>
+          </select></label>
+        <input id="sySpecNew" placeholder="ชื่อสาขาใหม่" style="display:none; width:150px; align-self:flex-end">
+        <label class="f" style="margin:0">ชื่อช่องรับนัด <input id="syName" placeholder="เช่น นพ.ใหม่ (Med)" style="width:190px"></label>
+        <label class="f" style="margin:0">ชนิด <select id="syKind">
+          <option value="doctor">หมอรายคน</option><option value="pool">pool แผนก</option>
+          <option value="service">service</option><option value="resource">เครื่อง/หัตถการ</option></select></label>
+      </div>
+      <div class="row mt">
+        <span class="muted">รับ:</span>
+        <label><input type="checkbox" id="syW"> Ward D/C</label>
+        <label><input type="checkbox" id="syO" checked> OPD</label>
+        <label><input type="checkbox" id="syR" checked> Refer</label>
+        <span class="muted" style="margin-left:10px">เพดานนัดปกติ</span><input id="syCapN" type="number" value="20" style="width:64px">
+        <span class="muted">โควตา refer</span><input id="syCapR" type="number" value="4" style="width:64px">
+        <button class="sbtn teal" onclick="sysAdd()">＋ เพิ่ม</button>
+      </div>
+      <p class="muted mt">เพิ่มแล้วยังไม่มีวันออกตรวจ — แพทย์/แผนกไปติ๊กวันเองในแท็บ "ตั้งค่าออกตรวจ" (self-service ตาม design)</p>
+    </div>
+    <div class="card mt">
+      <b>🏛️ วันหยุดกลาง (นักขัตฤกษ์ / รพ. ประกาศหยุด)</b>
+      <span class="muted">— ปิดทุกช่องรับนัดทั้ง รพ. · ระบบจะไม่เสนอวันเหล่านี้ให้จองเลย</span>
+      <div class="row mt">${Object.entries(state.holidays||{}).sort().map(([d,nm])=>`
+        <span class="chip full" title="กดเพื่อลบ" style="cursor:pointer" onclick="rmHoliday('${d}')">${fmtShort(d)} ${nm} ✕</span>`).join(' ')}</div>
+      <div class="row mt">
+        <input type="date" id="hoD"><input id="hoN" placeholder="ชื่อวันหยุด" style="width:180px">
+        <button class="sbtn teal" onclick="addHoliday()">＋ เพิ่มวันหยุด</button>
+      </div>
+    </div>
+    ${depts.map(d=>`
+      <div class="dephead">${deptMeta(d).ic} ${d} <span class="muted" style="font-weight:400">· สาขา: ${specsOf(d).join(', ')||'—'}</span></div>
+      ${state.targets.filter(t=>t.dept===d).map(t=>`
+        <div class="hrow" style="opacity:${t.archived?.55:1}">
+          <span class="lb" style="width:230px; text-align:left"><b>${t.name}</b></span>
+          <span class="chip kind">${t.spec||'-'}</span>
+          <span class="chip kind">${KIND_TH[t.kind]}</span>
+          <span class="muted" style="flex:1">นัดล่วงหน้า ${futureCount(t.id)} รายการ</span>
+          <button class="sbtn" onclick="openSysEdit('${t.id}')">✏️ แก้ไข</button>
+          ${!state.appts.some(a=>a.targetId===t.id)
+            ? `<button class="sbtn red" onclick="sysDel('${t.id}')">ลบ</button>` : ''}
+          ${t.archived
+            ? `<span class="chip full">ปิดรับนัด</span><button class="sbtn teal" onclick="sysArch('${t.id}',false)">เปิดกลับ</button>`
+            : `<button class="sbtn red" onclick="sysArch('${t.id}',true)">ปิดรับนัด</button>`}
+        </div>`).join('')}`).join('')}`;
+}
+function openSysEdit(tid){
+  const t = T(tid);
+  openModal(`
+    <button class="mclose" onclick="closeModal()">✕</button>
+    <h2>✏️ แก้ไข — ${t.name}</h2>
+    <p class="muted">เปลี่ยนได้เลย นัด/ประวัติ/สถิติเดิมตามมาอัตโนมัติ เพราะระบบอ้างด้วย id ไม่ใช่ชื่อ</p>
+    <label class="f">ชื่อช่องรับนัด <input id="seName" value="${t.name}"></label>
+    <label class="f">สาขาย่อย <input id="seSpec" value="${t.spec||''}" placeholder="เช่น โรคไต (Nephro)"></label>
+    <label class="f">คำอธิบายสั้น <input id="seSub" value="${t.sub||''}"></label>
+    <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="saveSysEdit('${tid}')">✔ บันทึก</button></div>`);
+}
+function saveSysEdit(tid){
+  const t = T(tid);
+  const name = document.getElementById('seName').value.trim();
+  if (!name){ toast('ชื่อห้ามว่าง'); return; }
+  t.name = name;
+  t.spec = document.getElementById('seSpec').value.trim();
+  t.sub = document.getElementById('seSub').value.trim();
+  save(); closeModal(); render();
+  toast(`บันทึกแล้ว — นัดเดิมทั้งหมดชี้มาที่ชื่อใหม่อัตโนมัติ`);
+}
+function sysDel(tid){
+  const t = T(tid);
+  if (state.appts.some(a=>a.targetId===tid)){ toast('มีนัดอ้างอยู่ — ลบไม่ได้ ใช้ "ปิดรับนัด" แทน'); render(); return; }
+  if (!confirm(`ลบ "${t.name}" ถาวร? (ลบได้เพราะยังไม่เคยมีนัด)`)) return;
+  state.targets = state.targets.filter(x=>x.id!==tid);
+  save(); render(); toast('ลบแล้ว');
+}
+function sysAdd(){
+  const deptSel = document.getElementById('syDeptSel').value;
+  const dept = (deptSel==='__new' ? document.getElementById('syDeptNew').value : deptSel).trim().toUpperCase();
+  const specSel = document.getElementById('sySpecSel').value;
+  const spec = (specSel==='__new' ? document.getElementById('sySpecNew').value : specSel).trim();
+  const name = document.getElementById('syName').value.trim();
+  const kind = document.getElementById('syKind').value;
+  const types = [['syW','ward'],['syO','opd'],['syR','refer']].filter(([i])=>document.getElementById(i).checked).map(([,v])=>v);
+  if (!dept || !name){ toast('ใส่แผนกและชื่อก่อน'); return; }
+  if (!types.length){ toast('เลือกประเภทที่รับอย่างน้อย 1'); return; }
+  const sched = {}; for (const d of DAYS) sched[d]={am:false,pm:false};
+  state.targets.push({id:'t'+(state.nextId++), dept, spec, kind, name, sub: spec||'', types, sched,
+    capN: Math.max(0,Number(document.getElementById('syCapN').value)||0),
+    capR: Math.max(0,Number(document.getElementById('syCapR').value)||0)});
+  save(); render();
+  toast(`เพิ่ม "${name}" ใน ${dept} แล้ว — แจ้งเจ้าตัวไปตั้งวันออกตรวจ`);
+}
+function addHoliday(){
+  if (user.role!=='it') return;
+  const d = document.getElementById('hoD').value;
+  const nm = document.getElementById('hoN').value.trim() || 'วันหยุด รพ.';
+  if (!d){ toast('เลือกวันที่ก่อน'); return; }
+  const pending = state.appts.filter(a=>a.date===d && a.status!=='cancelled' && a.date>=TODAY).length;
+  if (pending>0 && !confirm(`วันนั้นมีนัดทั้ง รพ. ค้างอยู่ ${pending} ราย — แต่ละแผนกต้องตามย้ายออก\nยืนยันประกาศหยุด?`)) return;
+  state.holidays[d] = nm;
+  save(); render(); toast(`เพิ่มวันหยุด ${fmtShort(d)} ${nm} แล้ว`);
+}
+function rmHoliday(d){
+  if (user.role!=='it') return;
+  if (!confirm(`ลบวันหยุด ${fmtShort(d)}?`)) return;
+  delete state.holidays[d];
+  save(); render(); toast('ลบวันหยุดแล้ว');
+}
+function sysArch(tid, val){
+  const t = T(tid);
+  if (val && !confirm(`ปิดรับนัด "${t.name}"? นัด/ประวัติเดิมยังอยู่ครบ แต่จะไม่รับนัดใหม่และหายจากหน้าจอง`)) return;
+  t.archived = val;
+  save(); render();
+  toast(val ? `ปิดรับนัด ${t.name} แล้ว (ข้อมูลเก่าอยู่ครบ)` : `เปิดรับนัด ${t.name} กลับแล้ว`);
+}
+
+/* ================= ภาพรวมบริหาร ================= */
+function moveWeek(n){ weekAnchor = d2s(addDays(s2d(weekAnchor), n*7)); render(); }
+let dashSec = 'icd', dashMore = false;
+function setDashSec(s){ dashSec=s; dashMore=false; dashHosp=null; render(); }
+function togDashMore(){ dashMore=!dashMore; render(); }
+
+/* ความหนาแน่น: ดูเป็นสัปดาห์ / เดือน / ปี */
+let dashPeriod = 'week';
+let monthAnchor = null, yearAnchor = null;
+{ const t0=s2d(TODAY); monthAnchor={y:t0.getFullYear(), m:t0.getMonth()}; yearAnchor=t0.getFullYear(); }
+function setDashPeriod(p){ dashPeriod=p; render(); }
+function dashNav(dir){
+  if (dashPeriod==='week') weekAnchor = d2s(addDays(s2d(weekAnchor), dir*7));
+  else if (dashPeriod==='month'){ monthAnchor.m+=dir; if(monthAnchor.m<0){monthAnchor.m=11;monthAnchor.y--;} if(monthAnchor.m>11){monthAnchor.m=0;monthAnchor.y++;} }
+  else yearAnchor += dir;
+  render();
+}
+function dayCapOf(d){
+  const dk = dowKey(d); if (!DAYS.includes(dk)) return 0;
+  let cap=0;
+  for (const t of activeTargets()) for (const sess of ['am','pm'])
+    if (t.sched[dk] && t.sched[dk][sess]) cap += t.capN + t.capR;
+  return cap;
+}
+function densityCardHTML(){
+  const bookedBy = {};
+  for (const a of state.appts) if (a.status!=='cancelled') bookedBy[a.date] = (bookedBy[a.date]||0)+1;
+  let rows=[], title='';
+  if (dashPeriod==='week'){
+    const days = DAYS.map((_,i)=>d2s(addDays(s2d(weekAnchor), i)));
+    title = `${fmtFull(days[0])} – ${fmtFull(days[4])}`;
+    rows = days.map(d=>[fmtShort(d), bookedBy[d]||0, dayCapOf(d)]);
+  } else if (dashPeriod==='month'){
+    title = `${TH_M_FULL[monthAnchor.m]} ${monthAnchor.y+543}`;
+    const daysIn = new Date(monthAnchor.y, monthAnchor.m+1, 0).getDate();
+    let wk=[], weeks=[];
+    for (let d=1; d<=daysIn; d++){
+      const ds = d2s(new Date(monthAnchor.y, monthAnchor.m, d));
+      wk.push(ds);
+      if (s2d(ds).getDay()===0 || d===daysIn){ weeks.push(wk); wk=[]; }
+    }
+    rows = weeks.filter(w=>w.some(d=>dayCapOf(d)>0)).map(w=>{
+      const b = w.reduce((s,d)=>s+(bookedBy[d]||0),0), c = w.reduce((s,d)=>s+dayCapOf(d),0);
+      return [`${s2d(w[0]).getDate()}–${s2d(w[w.length-1]).getDate()}`, b, c];
+    });
+  } else {
+    title = `ปี ${yearAnchor+543}`;
+    for (let m=0; m<12; m++){
+      const daysIn = new Date(yearAnchor, m+1, 0).getDate();
+      let b=0, c=0;
+      for (let d=1; d<=daysIn; d++){ const ds=d2s(new Date(yearAnchor,m,d)); b+=bookedBy[ds]||0; c+=dayCapOf(ds); }
+      rows.push([TH_M[m], b, c]);
+    }
+  }
+  const barRows = rows.map(([l,b,c])=>{
+    const pct = c ? Math.round(b/c*100) : 0;
+    const cls = pct>=100?'red':pct>=80?'amber':'';
+    return `<div class="hrow"><span class="lb" style="width:80px" title="${b}/${c} นัด">${l}</span>
+      <div class="tr"><i class="${cls}" style="width:${Math.min(pct,100)}%"></i></div>
+      <span class="n">${pct}%</span></div>`;
+  }).join('');
+  return `<div class="row"><b>ความหนาแน่น</b>
+      <div class="seg sm">
+        <button class="${dashPeriod==='week'?'on':''}" onclick="setDashPeriod('week')">สัปดาห์</button>
+        <button class="${dashPeriod==='month'?'on':''}" onclick="setDashPeriod('month')">เดือน</button>
+        <button class="${dashPeriod==='year'?'on':''}" onclick="setDashPeriod('year')">ปี</button>
+      </div>
+      <span class="spacer"></span>
+      <button class="navbtn" onclick="dashNav(-1)">←</button>
+      <span class="muted">${title}</span>
+      <button class="navbtn" onclick="dashNav(1)">→</button></div>
+    ${barRows}
+    <p class="muted mt" style="font-size:12px">มุมมองปี = เห็นว่าเดือนไหนคิวจองล่วงหน้าเต็มไปแค่ไหนแล้ว · ชี้แถบเพื่อดูจำนวนนัด</p>`;
+}
+
+function renderAdmin(){
+  const days = DAYS.map((_,i)=>d2s(addDays(s2d(weekAnchor), i)));
+  const problems=[];
+  for (const d of days){
+    for (const t of activeTargets()) for (const sess of ['am','pm']){
+      if (!isOpen(t,d,sess)) continue;
+      const c = counts(t.id,d,sess);
+      const cls = sessClass(c,t);
+      if (cls==='over' || cls==='full') problems.push({d, t, sess, c, cls});
+    }
+  }
+  const A = analyticsData();
+  const worst = problems.find(p=>p.cls==='over') || problems[0];
+  document.getElementById('app').innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><div class="v">${A.total.toLocaleString()}</div><div class="l">นัดทั้งหมด (12 สัปดาห์)</div></div>
+      <div class="kpi"><div class="v">${A.refs.length.toLocaleString()}</div><div class="l">เคส refer จาก รพช.</div></div>
+      <div class="kpi"><div class="v ${A.nsRate>=12?'bad':''}">${A.nsRate}%</div><div class="l">ไม่มาตามนัด (no-show)</div></div>
+      <div class="kpi"><div class="v">${A.avgLead} วัน</div><div class="l">ระยะนัดล่วงหน้าเฉลี่ย</div></div>
+      <div class="kpi"><div class="v ${A.urgCount>50?'bad':''}">${A.urgCount}</div>
+        <div class="l">🚨 แทรกเกินเพดาน${A.urgTop?` · มากสุด: ${A.urgTop[0]} ×${A.urgTop[1]}`:''}</div></div>
+    </div>
+    <div class="insight ${problems.length?'warn':''}">
+      ${problems.length
+        ? `⚠️ สัปดาห์นี้มี <b>${problems.length} ช่วงเต็ม/เกินเพดาน</b> — หนักสุด: ${worst.t.name} ${fmtShort(worst.d)} (นัดปกติ ${worst.c.n}/${worst.t.capN})`
+        : '✅ สัปดาห์นี้ทุกช่องรับนัดอยู่ในเพดาน'}
+    </div>
+    <div class="dashgrid">
+      <div class="card">${densityCardHTML()}</div>
+      <div class="card"><b>ต้องจัดการ (${problems.length})</b>
+        ${problems.length ? problems.slice(0,4).map(p=>`
+          <div class="hrow"><span class="chip ${p.cls}">${p.cls==='over'?'เกิน':'เต็ม'}</span>
+            <span style="flex:1; font-size:13px"><b>${p.t.name}</b> · ${fmtShort(p.d)} ${SESS_TH[p.sess]} (${p.c.n}/${p.t.capN}${p.t.capR?` · R ${p.c.r}/${p.t.capR}`:''})</span>
+            <button class="sbtn" onclick="setTab('book');goTarget('${p.t.id}','${p.d}')">เปิด</button></div>`).join('')
+          : '<p class="muted mt">ไม่มี</p>'}
+      </div>
+    </div>
+    <div class="row mt" style="margin-top:20px">
+      <b style="font-size:15px">เจาะข้อมูลย้อนหลัง 12 สัปดาห์:</b>
+      <div class="seg">
+        <button class="${dashSec==='icd'?'on':''}" onclick="setDashSec('icd')">โรคที่ refer</button>
+        <button class="${dashSec==='hosp'?'on':''}" onclick="setDashSec('hosp')">ราย รพช.</button>
+        <button class="${dashSec==='noshow'?'on':''}" onclick="setDashSec('noshow')">No-show</button>
+        <button class="${dashSec==='who'?'on':''}" onclick="setDashSec('who')">รายหมอ/ช่อง</button>
+      </div>
+    </div>
+    <div class="card mt">${dashPanelHTML(A)}</div>`;
+}
+
+/* ---------- ข้อมูลวิเคราะห์ย้อนหลัง 12 สัปดาห์ ---------- */
+function cntBy(arr, key){ const m={}; for(const a of arr){ const k=key(a); if(!k) continue; m[k]=(m[k]||0)+1; } return Object.entries(m).sort((x,y)=>y[1]-x[1]); }
+function analyticsData(){
+  const from = d2s(addDays(s2d(TODAY), -84));
+  const past = state.appts.filter(a => a.date>=from && a.date<TODAY && a.status!=='cancelled');
+  const refs = past.filter(a=>a.type==='refer');
+  const done = past.filter(a=>a.status==='done').length;
+  const ns = past.filter(a=>a.status==='noshow').length;
+  const leadOf = a => Math.max(0, Math.round((s2d(a.date)-s2d(a.createdOn||a.date))/86400000));
+  const depts = [...new Set(state.targets.map(t=>t.dept))];
+  const nsDept = depts.map(d=>{
+    const ids = state.targets.filter(t=>t.dept===d).map(t=>t.id);
+    const p = past.filter(a=>ids.includes(a.targetId));
+    const n = p.filter(a=>a.status==='noshow').length;
+    return [d, p.length? Math.round(n/p.length*100):0, p.length];
+  }).sort((x,y)=>y[1]-x[1]);
+  const buckets = [['นัดล่วงหน้า < 2 สัปดาห์',0,13],['2 สัปดาห์ – 2 เดือน',14,60],['เกิน 2 เดือน',61,99999]];
+  const nsLead = buckets.map(([l,lo,hi])=>{
+    const p = past.filter(a=>{ const ld=leadOf(a); return ld>=lo && ld<=hi; });
+    const n = p.filter(a=>a.status==='noshow').length;
+    return [l, p.length? Math.round(n/p.length*100):0, p.length];
+  });
+  const urg = past.filter(a=>a.urgent);
+  const urgTop = cntBy(urg, a=>{ const t=T(a.targetId); return t?t.name:null; })[0];
+  return {
+    total: past.length, refs, past,
+    urgCount: urg.length, urgTop,
+    nsRate: (done+ns) ? Math.round(ns/(done+ns)*100) : 0,
+    avgLead: past.length ? Math.round(past.reduce((s,a)=>s+leadOf(a),0)/past.length) : 0,
+    topIcd: cntBy(refs, a=>a.icd),
+    byHosp: cntBy(refs, a=>a.from),
+    nsDept, nsLead,
+    perDoc: state.targets.map(t=>{
+      const p = past.filter(a=>a.targetId===t.id);
+      return {t, top: cntBy(p, a=>a.icd).slice(0,3), n: p.length};
+    }).filter(x=>x.n>0).sort((x,y)=>y.n-x.n)
+  };
+}
+
+/* panel เดียวต่อครั้ง (progressive disclosure) — top 5 ก่อน กด "ดูทั้งหมด" ค่อยกาง */
+function dashPanelHTML(A){
+  const hbar = (rows, labelFn, valueFn, maxHint, suffix, colorFn) => {
+    const max = maxHint || Math.max(...rows.map(valueFn), 1);
+    return rows.map(r=>{
+      const v = valueFn(r);
+      return `<div class="hrow"><span class="lb">${labelFn(r)}</span>
+        <div class="tr"><i class="${colorFn?colorFn(r):''}" style="width:${Math.round(v/max*100)}%"></i></div>
+        <span class="n">${v}${suffix||''}</span></div>`;
+    }).join('');
+  };
+  const more = (rows) => rows.length>5 && !dashMore
+    ? `<button class="morebtn" onclick="togDashMore()">▾ ดูทั้งหมด ${rows.length} รายการ</button>`
+    : (rows.length>5 ? `<button class="morebtn" onclick="togDashMore()">▴ ย่อ</button>` : '');
+  const cut = (rows) => dashMore ? rows : rows.slice(0,5);
+
+  if (dashSec==='icd'){
+    const top = A.topIcd;
+    return `<b>โรคที่ถูก refer มากที่สุด</b>
+      ${hbar(cut(top), r=>`${r[0]} ${ICD_NAME[r[0]]||''}`, r=>r[1])}${more(top)}
+      <div class="insight">💡 3 อันดับแรก: ${top.slice(0,3).map(r=>ICD_NAME[r[0]]||r[0]).join(', ')} — ใช้ตัดสินใจเปิดคลินิกเฉพาะ/ขยายโควตา refer ของ service ที่ถูกขอบ่อย</div>`;
+  }
+  if (dashSec==='hosp'){
+    const max = A.byHosp.length ? A.byHosp[0][1] : 1;
+    return `<b>Refer แยกตาม รพ. ต้นทาง</b> <span class="muted">— กดชื่อ รพ. เพื่อดูโรคที่ส่งมา</span>
+      ${A.byHosp.map(([h,n])=>{
+        const open = dashHosp===h;
+        let detail='';
+        if (open){
+          const topH = cntBy(A.refs.filter(a=>a.from===h), a=>a.icd).slice(0,5);
+          detail = `<div style="margin:2px 0 10px 200px">${
+            topH.map(([c,k])=>`<span class="chip icd" style="margin:2px">${c} ${ICD_NAME[c]||''} ×${k}</span>`).join(' ')
+            || '<span class="muted">ไม่มีข้อมูลโรค</span>'}</div>`;
+        }
+        return `<div class="hrow" style="cursor:pointer" onclick="togHosp('${h}')">
+          <span class="lb">${open?'▾':'▸'} ${h}</span>
+          <div class="tr"><i style="width:${Math.round(n/max*100)}%"></i></div>
+          <span class="n">${n}</span></div>${detail}`;
+      }).join('')}
+      <div class="insight">💡 ส่งมากสุด: ${A.byHosp.length?A.byHosp[0][0]+' ('+A.byHosp[0][1]+' เคส)':'—'} — ใช้คุยโควตา/พัฒนา service รายอำเภอ</div>`;
+  }
+  if (dashSec==='noshow'){
+    const ratio = A.nsLead[0][1] ? (A.nsLead[2][1]/A.nsLead[0][1]).toFixed(1) : '-';
+    return `<b>ไม่มาตามนัด (no-show) ตามระยะนัดล่วงหน้า</b>
+      ${hbar(A.nsLead, r=>r[0], r=>r[1], 30, '%', r=>r[1]>=15?'red':r[1]>=10?'amber':'')}
+      <div class="insight warn">💡 นัดเกิน 2 เดือน no-show ${A.nsLead[2][1]}% (${ratio} เท่าของนัดใกล้) → เป้าโครงการ: ระบบโทร/SMS เตือนเฉพาะกลุ่มนัดไกล</div>
+      <div class="mt"><b>ตามแผนก</b></div>
+      ${hbar(cut(A.nsDept), r=>`${r[0]}`, r=>r[1], 30, '%', r=>r[1]>=15?'red':r[1]>=10?'amber':'')}${more(A.nsDept)}`;
+  }
+  // who
+  const rows = A.perDoc;
+  return `<b>ใครเจออะไร — โรค 3 อันดับแรกของแต่ละหมอ/ช่องรับนัด</b>
+    ${cut(rows).map(x=>`<div class="hrow"><span class="lb">${x.t.name}</span>
+      <span style="flex:1; font-size:13px">${x.top.map(([c,n])=>`<span class="chip icd">${c} ${ICD_NAME[c]||''} ×${n}</span>`).join(' ')}</span>
+      <span class="n muted">${x.n.toLocaleString()}</span></div>`).join('')}${more(rows)}
+    <div class="insight">💡 ใช้ดู case-mix จริงของแต่ละคน — วางแผนอัตรากำลัง/ความเชี่ยวชาญที่ควรเสริม</div>`;
+}
+
+/* ================= ฝั่ง รพช. ================= */
+function netGoDepts(){ netView={page:'depts'}; render(); }
+function netGoTarget(tid){
+  netView={page:'target', tid}; iv=null;
+  const d=s2d(TODAY); cal={y:d.getFullYear(), m:d.getMonth(), sel:null};
+  render();
+}
+function netCalMove(dir){ cal.m+=dir; if(cal.m<0){cal.m=11;cal.y--;} if(cal.m>11){cal.m=0;cal.y++;} render(); }
+
+let netQ = '';
+function setNetQ(v){ netQ = v.trim().toLowerCase(); renderNet(true); }
+function renderNet(keepQ){
+  if (netView.page==='target') return renderNetTarget(netView.tid);
+  if (keepQ!==true) netQ = '';
+  let referTargets = activeTargets().filter(t=>t.types.includes('refer') && t.capR>0);
+  const totalRef = referTargets.length;
+  if (netQ) referTargets = referTargets.filter(t=>(t.name+' '+(t.spec||'')+' '+t.dept).toLowerCase().includes(netQ));
+  const depts = [...new Set(referTargets.map(t=>t.dept))];
+  const mine = state.appts.filter(a=>a.type==='refer' && a.from===netHosp && a.date>=TODAY && a.status!=='cancelled')
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('app').innerHTML = `
+    <div class="row">
+      <b style="font-size:16px">มุมมอง รพ. เครือข่าย:</b>
+      ${user && user.role==='net'
+        ? `<span class="chip ok" style="font-size:13.5px">🔒 ${netHosp} (ตามบัญชีที่ login)</span>`
+        : `<select onchange="netHosp=this.value;render()">${NET_HOSPS.map(h=>`<option ${h===netHosp?'selected':''}>${h}</option>`).join('')}</select>`}
+      <span class="muted">เห็นเฉพาะสลอต refer ว่างของ รพ.ชุมแพ — ไม่เห็นข้อมูลคนไข้รายอื่น</span>
+    </div>
+    <div class="banner">แทนการส่งตัวแบบเดา: เปิดปฏิทิน เลือกวันที่มีสลอตว่างจริง คนไข้ถึงมาไม่ผิดวัน ไม่ชนวันที่ชุมแพแน่นอยู่แล้ว</div>
+    ${totalRef>8 ? `<div class="row" style="margin-bottom:6px">
+      <input value="${netQ}" placeholder="🔍 ค้นหมอ / สาขา / แผนก (รับ refer ${totalRef} ช่อง)" style="width:340px" oninput="setNetQ(this.value)"></div>` : ''}
+    ${referTargets.length ? depts.map(d=>`
+      <div class="dephead">${deptMeta(d).ic} ${d}</div>
+      <div class="tgrid">${referTargets.filter(t=>t.dept===d).map(t=>{
+        // หาวันว่างเร็วสุดใน 8 สัปดาห์
+        let firstFree=null;
+        outer: for (let i=0;i<56;i++){
+          const ds=d2s(addDays(s2d(TODAY),i));
+          for (const sess of ['am','pm']) if (isOpen(t,ds,sess)){
+            const c=counts(t.id,ds,sess);
+            if (t.capR-c.r>0){ firstFree={ds,sess,remain:t.capR-c.r}; break outer; }
+          }
+        }
+        return `<div class="tcard" onclick="netGoTarget('${t.id}')">
+          <div class="nm">${t.name}</div>
+          <div class="sub"><span class="chip kind">${t.spec||''}</span> ${t.sub}</div>
+          <div class="sched">🗓 ${schedSummary(t)} · โควตา refer ${t.capR}/ครึ่งวัน</div>
+          <div class="stat">${firstFree? `<span class="chip ok">ว่างเร็วสุด ${fmtShort(firstFree.ds)} (${SESS_TH[firstFree.sess]}) เหลือ ${firstFree.remain}</span>` : '<span class="chip full">เต็มยาว 8 สัปดาห์</span>'}</div>
+        </div>`;}).join('')}</div>`).join('') : '<p class="muted">ไม่พบตามคำค้น</p>'}
+    <div class="card mt"><b>นัด refer ของ ${netHosp} (ที่กำลังจะถึง)</b>
+      ${mine.length? mine.map(a=>`
+        <div class="appt"><span class="chip refer">Refer</span>
+          <div class="who">
+            <div class="nm">${a.pname || a.hn || '(ไม่ระบุ)'}</div>
+            <div class="sub">${a.cid?'CID '+a.cid+' · ':''}${a.refNo?a.refNo+' · ':''}${T(a.targetId).name} · ${fmtShort(a.date)} (${SESS_TH[a.session]})${a.icd?' · '+a.icd:''}${a.note?' · '+a.note:''}</div>
+          </div>
+          <div class="acts">
+            <button class="sbtn" title="พิมพ์ใบนัดให้ผู้ป่วยถือมา" onclick="printSlip(${a.id})">🖨 ใบนัด</button>
+            <button class="sbtn red" onclick="netCancel(${a.id})">ยกเลิก</button>
+          </div></div>`).join('')
+      : '<p class="muted mt">ยังไม่มีนัด</p>'}
+    </div>`;
+  if (netQ){ const inp=document.querySelector('#app input'); if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }
+}
+
+function renderNetTarget(tid){
+  const t = T(tid);
+  document.getElementById('app').innerHTML = `
+    <div class="crumb"><a onclick="netGoDepts()">บริการที่รับ refer</a><span class="sep">›</span>
+      <b>${t.name}</b> <span class="chip kind">${t.dept}</span>
+      <span class="muted">โควตา refer ${t.capR}/ครึ่งวัน · จาก ${netHosp}</span></div>
+    ${ivPanelHTML(tid, 'r', cd=>`netBook('${tid}','${cd.ds}','${cd.sess}')`)}
+    <div class="cal-head mt">
+      <button class="navbtn" onclick="netCalMove(-1)">←</button>
+      <select class="navbtn" onchange="calJump(this.value)" style="font-weight:700; font-size:15px">${monthOptionsHTML(cal.y, cal.m)}</select>
+      <button class="navbtn" onclick="netCalMove(1)">→</button>
+    </div>
+    ${miniCalHTML(t, 'r', cal.y, cal.m, (ds,sess)=>`netBook('${tid}','${ds}','${sess}')`)}
+    <p class="muted mt">กดช่อง "ว่าง" เพื่อจองสลอต refer · ตัวเลข = จำนวนที่ยังจองได้</p>`;
+}
+
+function netBook(tid, date, sess){
+  const t = T(tid);
+  openModal(`
+    <button class="mclose" onclick="closeModal()">✕</button>
+    <h2>จองสลอต refer — ${t.name}</h2>
+    <p class="muted">${fmtShort(date)} (${SESS_TH[sess]}) · จาก ${netHosp}</p>
+    <label class="f">ชื่อ-สกุลผู้ป่วย <input id="nPname" placeholder="เช่น นายสมหมาย ใจดี"></label>
+    <label class="f">เลขบัตรประชาชน (CID) — ตัวระบุข้าม รพ. <input id="nCid" maxlength="13" placeholder="13 หลัก · รพ.ชุมแพ ใช้ match แล้วออก HN เอง"></label>
+    <label class="f">เลข refer / ThaiRefer (ถ้ามี) <input id="nRef" placeholder="เช่น TR-680831-012"></label>
+    ${icdFieldHTML('nIcd')}
+    ${xfFormHTML(t,'nx-')}
+    <label class="f">เหตุผลส่งตัว / สิ่งที่ขอ <input id="nNote" placeholder="เช่น ขอ echo ประเมิน EF / สงสัย CA"></label>
+    <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="netSave('${tid}','${date}','${sess}')">✔ ยืนยันจอง</button></div>
+  `);
+}
+function netSave(tid, date, sess){
+  const t = T(tid);
+  const c = counts(tid, date, sess);
+  if (c.r >= t.capR){ toast('สลอตเพิ่งเต็ม — เลือกวันอื่น'); closeModal(); render(); return; }
+  const pname = document.getElementById('nPname').value.trim();
+  const cid = document.getElementById('nCid').value.trim();
+  if (!pname && !cid){ toast('ใส่ชื่อหรือ CID อย่างน้อย 1 อย่าง'); return; }
+  const refNo = document.getElementById('nRef').value.trim();
+  const note = document.getElementById('nNote').value.trim();
+  // รพช. ไม่รู้ HN ชุมแพ — เก็บ CID/ชื่อ/เลข refer ไว้ ฝั่งชุมแพ match แล้วออก HN ตอนลงทะเบียน
+  state.appts.push({id:state.nextId++, hn:null, pname, cid, refNo, targetId:tid, date, session:sess, type:'refer', note, from:netHosp,
+    icd: icdRead('nIcd'), createdOn: TODAY, status: 'booked', extra: xfRead(t,'nx-')});
+  if (iv) iv.cands = candidateSlots(t, 'r', iv.target);
+  save(); closeModal(); render();
+  toast(`จองสำเร็จ — ${t.name} ${fmtShort(date)} (${SESS_TH[sess]})`);
+}
+function netCancel(id){
+  const a = state.appts.find(x=>x.id===id); if(!a) return;
+  if (!confirm('ยกเลิกนัด refer นี้?')) return;
+  a.status = 'cancelled'; a.cancelledBy = netHosp; a.cancelledOn = TODAY;
+  save(); render(); toast('ยกเลิกแล้ว — สลอตคืนเป็นว่าง (ประวัติเก็บไว้)');
+}
+
+function togHosp(h){ dashHosp = dashHosp===h ? null : h; render(); }
+
+/* ---------- start ---------- */
+load();
+/* login ค้างไว้ → เข้าหน้าแรกของบัญชีนั้นเลย (หน้าปัก > หน้า default ตามบทบาท) */
+const savedUser = lsGetK(USER_KEY);
+if (savedUser && USERS.some(u=>u.id===savedUser)) enterAs(savedUser, true);
+else renderLogin();
+</script>
+</body>
+</html>
