@@ -204,6 +204,7 @@
   /* หน้าตั้งค่า: การ์ดกางเต็มจอ แบ่งส่วนเป็นคอลัมน์ ไม่ยาวเป็นงูอีก */
   .setcols{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:8px 26px; margin-top:8px}
   .setsec{border-top:1px dashed var(--line); padding-top:8px; min-width:0}
+  .setsec.wide{grid-column:1/-1}
   /* กล่องตัวอย่างผลลัพธ์ของ custom field */
   .xfprev{border:1.5px dashed var(--teal); background:var(--teal-soft); border-radius:10px; padding:8px 12px; margin-top:8px}
   .xfprev .t{font-size:12px; font-weight:700; color:var(--teal-dark)}
@@ -1602,7 +1603,7 @@ function settingCard(t){
       </div>` : '<p class="muted mt">ครบ 5 ฟิลด์แล้ว</p>'}
     </div>
     ${t.types.includes('refer') ? `
-    <div class="setsec">
+    <div class="setsec wide">
       <b style="font-size:13.5px">🧪 เงื่อนไข W/U ก่อนส่ง refer</b>
       <div class="muted" style="margin-top:2px">ผูกกับรหัสโรค — พอ รพช. เลือกโรคนี้ตอนกดจอง จะเห็นรายการนี้ทันที และพิมพ์ลงใบนัดให้ผู้ป่วย (ใส่รหัสแม่ เช่น N18 จะครอบ N18.3/N18.5 ให้เอง)</div>
       ${(t.wu||[]).map((r,i)=>`
