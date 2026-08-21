@@ -1596,15 +1596,42 @@ function settingCard(t){
       <b style="font-size:13.5px">🧪 เงื่อนไข W/U ก่อนส่ง refer</b>
       <div class="muted" style="margin-top:2px">ผูกกับรหัสโรค — พอ รพช. เลือกโรคนี้ตอนกดจอง จะเห็นรายการนี้ทันที และพิมพ์ลงใบนัดให้ผู้ป่วย (ใส่รหัสแม่ เช่น N18 จะครอบ N18.3/N18.5 ให้เอง)</div>
       ${(t.wu||[]).map((r,i)=>`
-        <div class="row mt"><span class="chip icd">${r.icd} ${ICD_NAME[r.icd]||''}</span>
-          <span class="muted" style="flex:1; font-size:12.5px">${r.items}</span>
+        <div class="row mt"><span class="chip icd" style="flex:none">${r.icd} ${ICD_NAME[r.icd]||''}</span>
+          <input id="wuE-${t.id}-${i}" value="${r.items}" style="flex:1; min-width:180px; font-size:12.5px"
+            onfocus="_wuFocus=this.id" onchange="saveWuItems('${t.id}',${i},this.value)"
+            title="พิมพ์แก้ได้เลย — เซฟอัตโนมัติตอนออกจากช่อง">
           <button class="sbtn red" onclick="delWu('${t.id}',${i})">ลบ</button></div>`).join('')}
       <div class="row mt" style="align-items:flex-end">
         <div style="width:210px">${icdFieldHTML('wuI-'+t.id)}</div>
-        <input id="wuT-${t.id}" placeholder="รายการที่ขอ เช่น CBC, ESR, CRP, CXR" style="flex:1; min-width:170px; font-size:13px">
+        <input id="wuT-${t.id}" placeholder="รายการที่ขอ — พิมพ์เอง หรือกดปุ่มแลปด้านล่าง" style="flex:1; min-width:170px; font-size:13px" onfocus="_wuFocus=this.id">
         <button class="sbtn teal" onclick="addWu('${t.id}')">＋ เพิ่ม</button>
       </div>
+      <div class="row mt" style="gap:4px">
+        <span class="muted" style="font-size:12px">กดเพื่อเติมแลป (ลงช่องที่กำลังแก้อยู่):</span>
+        ${LAB_CHIPS.map(l=>`<button class="sbtn" style="font-size:12px; padding:2px 8px" onclick="wuChip('${t.id}','${l}')">＋${l}</button>`).join('')}
+      </div>
     </div>` : ''}` : ''}</div>`;
+}
+/* คลังแลปยอดใช้ — กดเติมแทนพิมพ์ ลดงานพิมพ์/สะกดเพี้ยน */
+const LAB_CHIPS = ['CBC','BUN/Cr','Electrolyte','LFT','UA','ESR','CRP','TSH/FT4','HbA1c','Lipid','Ferritin/Iron study','RF/anti-CCP','ANA','Stool occult blood','CXR','EKG'];
+let _wuFocus = null;
+function wuChip(tid, lab){
+  let el = _wuFocus ? document.getElementById(_wuFocus) : null;
+  if (!el || !(_wuFocus||'').includes(tid)) el = document.getElementById('wuT-'+tid);
+  if (!el) return;
+  const cur = el.value.trim();
+  if (cur.split(',').map(s=>s.trim()).includes(lab)){ toast(`มี ${lab} อยู่แล้ว`); return; }
+  el.value = cur ? cur.replace(/,\s*$/,'')+', '+lab : lab;
+  _wuFocus = el.id;
+  if (el.id.startsWith('wuE-')) el.dispatchEvent(new Event('change'));   // กติกาเดิม → เซฟทันที
+}
+function saveWuItems(tid, i, v){
+  if (!canEditTarget(T(tid))){ toast('🔒 สิทธิ์ไม่พอ'); render(); return; }
+  const t = T(tid);
+  if (!t.wu || !t.wu[i]) return;
+  t.wu[i].items = v.trim();
+  save();
+  toast('✔ แก้รายการแล้ว — มีผลกับการจองครั้งถัดไปทันที');
 }
 function addWu(tid){
   if (!guardEdit(tid)) return;
