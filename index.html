@@ -268,7 +268,7 @@
    แต่ละ target มีตารางออกตรวจ + เพดานนัดปกติ + โควตา refer แยกกัน
    ============================================================ */
 
-const LS_KEY = 'cph-appt-mock-v10';
+const LS_KEY = 'cph-appt-mock-v11';
 /* เกณฑ์คลินิกที่แทรกเกินเพดานได้ — ต้องเลือกจากรายการ ไม่มี "ด่วน (รู้สึกว่าด่วน)" */
 const URGENT_REASONS = ['สงสัยมะเร็ง (เป้า 2 สัปดาห์)','Stroke/TIA fast track','เคสทรุดเร็ว/ผล lab วิกฤต','Post-op ภาวะแทรกซ้อน','คำสั่งแพทย์เวร/ผอ. (ระบุชื่อในหมายเหตุ)'];
 const PIN_KEY = 'cph-appt-pin';   // หน้าประจำ (ผูกกับบัญชี — reset ข้อมูลไม่ล้าง)
@@ -304,6 +304,7 @@ const ICD = [
   ['K76.0','Fatty liver ไขมันพอกตับ'],['B18.1','ไวรัสตับอักเสบ B เรื้อรัง'],['D64.9','Anemia ซีด'],
   ['E03.9','Hypothyroid'],['E05.9','Hyperthyroid ไทรอยด์เป็นพิษ'],['M10.9','Gout เกาต์'],
   ['A15.0','TB ปอด วัณโรค'],['K29.7','Gastritis กระเพาะอักเสบ'],['K21.9','GERD กรดไหลย้อน'],
+  ['M06.9','RA ข้ออักเสบรูมาตอยด์'],['M32.9','SLE โรคแพ้ภูมิตัวเอง'],
   ['N39.0','UTI ติดเชื้อทางเดินปัสสาวะ'],['J18.9','Pneumonia ปอดอักเสบ'],['E86','Dehydration'],
   ['I63.9','Stroke สมองขาดเลือด'],['I61.9','ICH เลือดออกในสมอง'],['G45.9','TIA สมองขาดเลือดชั่วคราว'],
   ['G40.9','Epilepsy ลมชัก'],['G20','Parkinson พาร์กินสัน'],['G30.9','Alzheimer สมองเสื่อม'],
@@ -332,7 +333,7 @@ const ICD = [
 const ICD_NAME = Object.fromEntries(ICD);
 /* pool โรคตามแผนก ใช้ตอน seed ข้อมูลสมมติ */
 const ICD_POOL = {
-  MED:['E11.9','I10','E78.5','N18.3','N18.5','J44.9','J45.9','K76.0','B18.1','D64.9','E03.9','E05.9','M10.9','A15.0','K29.7','K21.9','J18.9'],
+  MED:['E11.9','I10','E78.5','N18.3','N18.5','J44.9','J45.9','K76.0','B18.1','D64.9','E03.9','E05.9','M10.9','A15.0','K29.7','K21.9','J18.9','M06.9','M32.9'],
   NEURO:['I63.9','I61.9','G45.9','G40.9','G20','G30.9','F03.9','G43.9','G51.0','G62.9','M54.1','R51','R42','G70.0'],
   SX:['K80.2','K81.0','K35.8','K40.9','C18.9','C16.9','C22.0','C50.9','N63','K64.9','K92.2','N20.0','N40','E04.1','C73','R19.0'],
   ORTHO:['M17.9','M16.9','S72.0','S52.5','S82.3','M54.5','M51.2','M75.1','M65.3','G56.0','S83.5','M25.5'],
@@ -366,14 +367,22 @@ function defaultTargets(){
   return [
     {id:'med-pool', dept:'MED', spec:'อายุรกรรมทั่วไป', kind:'pool', name:'อายุรกรรมทั่วไป (pool รวม)', sub:'นัดเข้าแผนก ไม่ระบุหมอ',
       types:['opd','refer'], sched:S({mon:'am',tue:'am',wed:'am',thu:'am',fri:'am'}), capN:40, capR:8,
-      fields:[{id:'f1', label:'ประเภทการมา', type:'select', options:['ตรวจปกติ','มารับยา','Telemed']}]},
+      fields:[{id:'f1', label:'ประเภทการมา', type:'select', options:['ตรวจปกติ','มารับยา','Telemed']}],
+      wu:[
+        {icd:'M06.9', items:'CBC, ESR, CRP, RF และ anti-CCP (ถ้าทำได้), Cr, LFT, CXR'},
+        {icd:'M32.9', items:'CBC, UA, Cr, ESR/CRP, ANA (ถ้าทำได้)'},
+        {icd:'E05.9', items:'TSH, FT4 (FT3 ถ้ามี) — แนบผลล่าสุดมาด้วย'},
+        {icd:'D64.9', items:'CBC + MCV, Reticulocyte, Ferritin/Iron study, Stool occult blood'},
+      ]},
     doc('med-a','MED','อายุรกรรมทั่วไป','นพ.กิตติ (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],0,12,0),
     doc('med-b','MED','อายุรกรรมทั่วไป','พญ.รัตนา (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],1,12,0),
     doc('med-c','MED','อายุรกรรมทั่วไป','นพ.สมชาย (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],2,12,0),
     doc('med-d','MED','อายุรกรรมทั่วไป','พญ.ชนิดา (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],3,12,0),
     doc('med-e','MED','อายุรกรรมทั่วไป','นพ.ภาณุวัฒน์ (Med)','รับเฉพาะเคส D/C จาก ward ตัวเอง',['ward'],4,12,0),
-    doc('med-nep1','MED','โรคไต (Nephro)','นพ.เกรียงไกร (ไต)','คลินิกไตเรื้อรัง',['ward','opd','refer'],5,20,4),
-    doc('med-nep2','MED','โรคไต (Nephro)','พญ.ศศิธร (ไต)','คลินิกไตเรื้อรัง',['ward','opd','refer'],6,20,4),
+    doc('med-nep1','MED','โรคไต (Nephro)','นพ.เกรียงไกร (ไต)','คลินิกไตเรื้อรัง',['ward','opd','refer'],5,20,4,
+      {wu:[{icd:'N18', items:'Cr/eGFR ล่าสุด 2 ครั้ง, UA, UPCR (ถ้ามี), K, HCO3, Hb, ผล U/S KUB ถ้าเคยทำ'}]}),
+    doc('med-nep2','MED','โรคไต (Nephro)','พญ.ศศิธร (ไต)','คลินิกไตเรื้อรัง',['ward','opd','refer'],6,20,4,
+      {wu:[{icd:'N18', items:'Cr/eGFR ล่าสุด 2 ครั้ง, UA, UPCR (ถ้ามี), K, HCO3, Hb, ผล U/S KUB ถ้าเคยทำ'}]}),
     doc('sx-a','SX','ศัลยกรรมทั่วไป','นพ.ปกรณ์ (ศัลย์)','เคสประจำตัว',['ward','opd','refer'],4,25,5),
     doc('sx-b','SX','ศัลยกรรมทั่วไป','พญ.ชลิดา (ศัลย์)','เคสประจำตัว',['ward','opd','refer'],1,25,5),
     doc('sx-c','SX','ศัลยกรรมทั่วไป','นพ.เอกราช (ศัลย์)','เคสประจำตัว',['ward','opd','refer'],7,25,5),
@@ -389,7 +398,8 @@ function defaultTargets(){
     doc('or-sp','ORTHO','เวชศาสตร์การกีฬา','นพ.กันตพงศ์ (Sport)','คลินิกเวชศาสตร์การกีฬา',['opd','refer'],7,20,4),
     doc('or-spine','ORTHO','กระดูกสันหลัง','นพ.นราธิป (Spine)','คลินิกกระดูกสันหลัง',['ward','opd','refer'],8,18,4),
     doc('nr-a','NEURO','ประสาทวิทยา','พญ.เมธาวี (Neuro)','คลินิกระบบประสาท — แยกจาก MED pool',['ward','opd','refer'],9,20,5,
-      {fields:[{id:'f1', label:'ประเภทเคสที่ส่งมา', type:'select', options:['New case','F/U เดิม','ปรับยา']}]}),
+      {fields:[{id:'f1', label:'ประเภทเคสที่ส่งมา', type:'select', options:['New case','F/U เดิม','ปรับยา']}],
+       wu:[{icd:'G40.9', items:'เล่าลักษณะชักละเอียด/คลิปถ้ามี, ชื่อยากันชักที่ได้+ขนาด, Electrolyte, CT brain ถ้าเคยทำ'}]}),
     doc('nr-b','NEURO','ประสาทวิทยา','นพ.ปริญญ์ (Neuro)','คลินิกระบบประสาท',['ward','opd','refer'],2,20,5),
     doc('cd-doc','CARDIO','อายุรกรรมหัวใจ','พญ.กมลชนก (Cardio)','คลินิกหัวใจ',['ward','opd','refer'],0,18,4),
     {id:'cd-echo', dept:'CARDIO', spec:'ตรวจพิเศษหัวใจ', kind:'service', name:'Echocardiogram', sub:'สลอตผูกกับ service ไม่ใช่ตัวหมอ',
@@ -819,11 +829,36 @@ function icdFilter(id){
   list.innerHTML = hits.map(([c,n]) => `<button type="button" onclick="icdPick('${id}','${c}')"><b>${c}</b> — ${n}</button>`).join('');
   list.style.display = 'block';
 }
+const _icdWatch = {};   // callback ต่อช่อง ICD — ใช้เด้งกล่อง W/U ตอนเลือกโรค
 function icdPick(id, code){
   const inp = document.getElementById(id);
   inp.value = code+' — '+ICD_NAME[code];
   inp.dataset.code = code;
   document.getElementById(id+'-list').style.display='none';
+  if (_icdWatch[id]) _icdWatch[id](code);
+}
+
+/* ---------- W/U ก่อนส่ง refer: เงื่อนไขผูกกับ ICD-10 ที่หมอเจ้าของช่องกำหนดเอง ---------- */
+function wuRules(t, code){
+  if (!t || !t.wu || !code) return [];
+  return t.wu.filter(r => code.startsWith(r.icd));   // prefix match: N18 ครอบ N18.3/N18.5
+}
+function wuBoxHTML(boxId, t, code){
+  const rules = wuRules(t, code);
+  if (!rules.length) return '';
+  return `<div class="banner" style="margin:8px 0 0">
+    🧪 <b>เงื่อนไขก่อนส่ง — ${t.name} ขอให้เตรียมมาด้วย:</b>
+    ${rules.map(r=>`<div style="margin-top:3px"><b>${r.icd}</b> ${ICD_NAME[r.icd]||''}: ${r.items}</div>`).join('')}
+    <label style="display:block; margin-top:6px; font-size:13px; cursor:pointer">
+      <input type="checkbox" id="${boxId}-ack"> เตรียม/แนบผลมาครบแล้ว</label>
+    <div class="muted" style="font-size:11.5px; margin-top:2px">รายการนี้จะพิมพ์ลงใบนัดให้ผู้ป่วยถือไปด้วย</div>
+  </div>`;
+}
+function wuCapture(boxId, t, code){
+  const rules = wuRules(t, code);
+  if (!rules.length) return {};
+  const ack = document.getElementById(boxId+'-ack');
+  return { wuList: rules.map(r=>r.items).join(' · '), wuAck: !!(ack && ack.checked) };
 }
 function icdRead(id){
   const inp = document.getElementById(id);
@@ -943,6 +978,7 @@ function printSlip(id){
         <tr><td>ประเภทนัด</td><td>${TYPE_TH[a.type]}${a.from ? ' · ส่งจาก '+a.from : ''}</td></tr>
         ${a.icd ? `<tr><td>โรค/เรื่องที่นัด</td><td>${a.icd} — ${ICD_NAME[a.icd]||''}</td></tr>` : ''}
         ${a.note ? `<tr><td>หมายเหตุ</td><td>${a.note}</td></tr>` : ''}
+        ${a.wuList ? `<tr><td>🧪 เตรียมมาก่อนพบแพทย์</td><td><b>${a.wuList}</b>${a.wuAck?' (แจ้งว่าเตรียมครบแล้ว)':''}</td></tr>` : ''}
       </table>
       <div class="s-date">📅 ${dateFull}<br>${timeTxt}</div>
       <div class="s-note">คำแนะนำ: มาก่อนเวลานัดอย่างน้อย 30 นาที · นำบัตรประชาชนและใบนัดนี้มาด้วยทุกครั้ง ·
@@ -1237,6 +1273,9 @@ function dayPanelHTML(t, ds){
             <div class="sub">${a.urgent?`<span class="chip over" title="${a.urgentReason||''} · สั่งโดย ${a.approvedBy||''}">🚨 แทรกด่วน</span>`:''}${a.hn ? `<span><b>${a.hn}</b></span>`
                 : `${a.cid?`<span>CID ${a.cid}</span>`:''}${a.refNo?`<span>${a.refNo}</span>`:''}<span style="color:var(--amber); font-weight:700">รอออก HN</span>`}
               ${a.icd?`<span class="chip icd">${a.icd} ${ICD_NAME[a.icd]||''}</span>`:''}
+              ${a.wuList ? (a.wuAck
+                ? `<span class="chip ok" title="${a.wuList}">🧪 W/U ครบ</span>`
+                : `<span class="chip warn" title="ขอให้เตรียม: ${a.wuList}">🧪 รอ W/U</span>`) : ''}
               ${xfChips(t,a)}${a.note?`<span>${a.note}</span>`:''}${a.from?`<span>⬅ ${a.from}</span>`:''}</div>
           </div>
           <div class="acts">
@@ -1303,6 +1342,7 @@ function openQuickAdd(tid, ds, sess, noteDefault, preferUrgent){
     <label class="f">ชื่อ-สกุล <input id="qPname" placeholder="ระบบจริงดึงจาก HOSxP อัตโนมัติ"></label>
     <span id="qFromWrap" style="display:none"><label class="f">ส่งจาก <select id="qFrom">${NET_HOSPS.map(h=>`<option>${h}</option>`).join('')}</select></label></span>
     ${icdFieldHTML('qIcd')}
+    <div id="qWu"></div>
     ${xfFormHTML(t,'qx-')}
     <label class="f">หมายเหตุสั้น <input id="qNote" value="${noteDefault||''}" placeholder="เช่น F/U DM / post-op D14"></label>
     <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="quickSave('${tid}','${ds}','${sess}')">✔ บันทึกนัด</button></div>
@@ -1314,6 +1354,10 @@ function openQuickAdd(tid, ds, sess, noteDefault, preferUrgent){
       canOverride(t,x) && bucketUsed(t,c,x)<hardMax(t,x));
     if (tp) document.getElementById('qType').value = tp;
   }
+  _icdWatch['qIcd'] = code => {
+    const tp = document.getElementById('qType').value;
+    document.getElementById('qWu').innerHTML = tp==='refer' ? wuBoxHTML('qWu', t, code) : '';
+  };
   document.getElementById('qHn').focus();
   qTypeChanged(tid, ds, sess);
 }
@@ -1322,6 +1366,8 @@ function qTypeChanged(tid, ds, sess){
   const c = counts(tid, ds, sess);
   const tp = document.getElementById('qType').value;
   document.getElementById('qFromWrap').style.display = tp==='refer' ? '' : 'none';
+  const qw = document.getElementById('qWu');
+  if (qw) qw.innerHTML = tp==='refer' ? wuBoxHTML('qWu', t, icdRead('qIcd')) : '';
   const full = bucketUsed(t,c,tp) >= bucketCap(t,tp) && bucketCap(t,tp)>0;
   document.getElementById('qUrgWrap').style.display = (full && canOverride(t,tp) && bucketUsed(t,c,tp) < hardMax(t,tp)) ? '' : 'none';
 }
@@ -1344,9 +1390,11 @@ function quickSave(tid, ds, sess){
   const pname = document.getElementById('qPname').value.trim();
   const note = document.getElementById('qNote').value.trim();
   const from = type==='refer' ? document.getElementById('qFrom').value : null;
-  state.appts.push({id:state.nextId++, hn, pname, targetId:tid, date:ds, session:sess, type, note, from,
-    icd: icdRead('qIcd'), createdOn: TODAY, status: 'booked', extra: xfRead(t,'qx-'),
-    urgent, urgentReason: urgent?urgentReason:undefined, approvedBy: urgent?(user?user.name:''):undefined});
+  const qIcdCode = icdRead('qIcd');
+  state.appts.push(Object.assign({id:state.nextId++, hn, pname, targetId:tid, date:ds, session:sess, type, note, from,
+    icd: qIcdCode, createdOn: TODAY, status: 'booked', extra: xfRead(t,'qx-'),
+    urgent, urgentReason: urgent?urgentReason:undefined, approvedBy: urgent?(user?user.name:''):undefined},
+    type==='refer' ? wuCapture('qWu', t, qIcdCode) : {}));
   if (iv) iv.cands = candidateSlots(t, iv.bucket, iv.target);  // refresh ที่ว่างหลังลงนัด
   const d=s2d(ds); cal.y=d.getFullYear(); cal.m=d.getMonth(); cal.sel=ds;
   save(); closeModal(); render();
@@ -1516,7 +1564,40 @@ function settingCard(t){
         <input id="nfO-${t.id}" placeholder="③ ตัวเลือก คั่นด้วย , เช่น บัตรทอง,ประกันสังคม,จ่ายเอง" style="flex:1; min-width:170px; font-size:13px">
         <button class="sbtn teal" onclick="addField('${t.id}')">＋ เพิ่ม</button>
       </div>` : '<p class="muted mt">ครบ 5 ฟิลด์แล้ว</p>'}
-    </div>` : ''}</div>`;
+    </div>
+    ${t.types.includes('refer') ? `
+    <div class="mt" style="border-top:1px dashed var(--line); padding-top:8px">
+      <b style="font-size:13.5px">🧪 เงื่อนไข W/U ก่อนส่ง refer</b>
+      <div class="muted" style="margin-top:2px">ผูกกับรหัสโรค — พอ รพช. เลือกโรคนี้ตอนกดจอง จะเห็นรายการนี้ทันที และพิมพ์ลงใบนัดให้ผู้ป่วย (ใส่รหัสแม่ เช่น N18 จะครอบ N18.3/N18.5 ให้เอง)</div>
+      ${(t.wu||[]).map((r,i)=>`
+        <div class="row mt"><span class="chip icd">${r.icd} ${ICD_NAME[r.icd]||''}</span>
+          <span class="muted" style="flex:1; font-size:12.5px">${r.items}</span>
+          <button class="sbtn red" onclick="delWu('${t.id}',${i})">ลบ</button></div>`).join('')}
+      <div class="row mt" style="align-items:flex-end">
+        <div style="width:210px">${icdFieldHTML('wuI-'+t.id)}</div>
+        <input id="wuT-${t.id}" placeholder="รายการที่ขอ เช่น CBC, ESR, CRP, CXR" style="flex:1; min-width:170px; font-size:13px">
+        <button class="sbtn teal" onclick="addWu('${t.id}')">＋ เพิ่ม</button>
+      </div>
+    </div>` : ''}` : ''}</div>`;
+}
+function addWu(tid){
+  if (!guardEdit(tid)) return;
+  const t = T(tid);
+  const inp = document.getElementById('wuI-'+tid);
+  const code = inp.dataset.code || inp.value.trim().split(' ')[0].toUpperCase();
+  const items = document.getElementById('wuT-'+tid).value.trim();
+  if (!code){ toast('เลือก/พิมพ์รหัสโรคก่อน'); return; }
+  if (!items){ toast('ใส่รายการ W/U ก่อน'); return; }
+  if (!t.wu) t.wu = [];
+  if (t.wu.some(r=>r.icd===code)){ toast(`มีเงื่อนไขของ ${code} อยู่แล้ว — ลบอันเดิมก่อนถ้าจะแก้`); return; }
+  t.wu.push({icd:code, items});
+  save(); render();
+  toast(`✔ ผูกเงื่อนไขกับ ${code} แล้ว — รพช. จะเห็นทันทีตอนเลือกโรคนี้`);
+}
+function delWu(tid, i){
+  if (!guardEdit(tid)) return;
+  T(tid).wu.splice(i,1);
+  save(); render(); toast('ลบเงื่อนไขแล้ว');
 }
 /* แม่แบบฟิลด์ยอดนิยม — กดเดียวติด พร้อมเห็น preview ทันที */
 const XF_TPLS = [
@@ -2037,10 +2118,12 @@ function netBook(tid, date, sess){
     <label class="f">เลขบัตรประชาชน (CID) — ตัวระบุข้าม รพ. <input id="nCid" maxlength="13" placeholder="13 หลัก · รพ.ชุมแพ ใช้ match แล้วออก HN เอง"></label>
     <label class="f">เลข refer / ThaiRefer (ถ้ามี) <input id="nRef" placeholder="เช่น TR-680831-012"></label>
     ${icdFieldHTML('nIcd')}
+    <div id="nWu"></div>
     ${xfFormHTML(t,'nx-')}
     <label class="f">เหตุผลส่งตัว / สิ่งที่ขอ <input id="nNote" placeholder="เช่น ขอ echo ประเมิน EF / สงสัย CA"></label>
     <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="netSave('${tid}','${date}','${sess}')">✔ ยืนยันจอง</button></div>
   `);
+  _icdWatch['nIcd'] = code => { document.getElementById('nWu').innerHTML = wuBoxHTML('nWu', t, code); };
 }
 function netSave(tid, date, sess){
   const t = T(tid);
@@ -2052,8 +2135,9 @@ function netSave(tid, date, sess){
   const refNo = document.getElementById('nRef').value.trim();
   const note = document.getElementById('nNote').value.trim();
   // รพช. ไม่รู้ HN ชุมแพ — เก็บ CID/ชื่อ/เลข refer ไว้ ฝั่งชุมแพ match แล้วออก HN ตอนลงทะเบียน
-  state.appts.push({id:state.nextId++, hn:null, pname, cid, refNo, targetId:tid, date, session:sess, type:'refer', note, from:netHosp,
-    icd: icdRead('nIcd'), createdOn: TODAY, status: 'booked', extra: xfRead(t,'nx-')});
+  const nIcdCode = icdRead('nIcd');
+  state.appts.push(Object.assign({id:state.nextId++, hn:null, pname, cid, refNo, targetId:tid, date, session:sess, type:'refer', note, from:netHosp,
+    icd: nIcdCode, createdOn: TODAY, status: 'booked', extra: xfRead(t,'nx-')}, wuCapture('nWu', t, nIcdCode)));
   if (iv) iv.cands = candidateSlots(t, 'r', iv.target);
   save(); closeModal(); render();
   toast(`จองสำเร็จ — ${t.name} ${fmtShort(date)} (${SESS_TH[sess]})`);
