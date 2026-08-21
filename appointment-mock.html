@@ -826,10 +826,12 @@ function icdFilter(id){
   if (!q){ list.style.display='none'; return; }
   const hits = ICD.filter(([c,n]) => c.toLowerCase().startsWith(q) || n.toLowerCase().includes(q)).slice(0,8);
   if (!hits.length){ list.style.display='none'; return; }
-  list.innerHTML = hits.map(([c,n]) => `<button type="button" onclick="icdPick('${id}','${c}')"><b>${c}</b> — ${n}</button>`).join('');
+  list.innerHTML = hits.map(([c,n]) => `<button type="button" onclick="icdPick('${id}','${c}')"><b>${c}</b> — ${n}${
+    _icdWuT[id] && wuRules(_icdWuT[id], c).length ? ' <span title="โรคนี้มีเงื่อนไข W/U ก่อนส่ง">🧪</span>' : ''}</button>`).join('');
   list.style.display = 'block';
 }
 const _icdWatch = {};   // callback ต่อช่อง ICD — ใช้เด้งกล่อง W/U ตอนเลือกโรค
+const _icdWuT = {};     // target ผูกกับช่อง ICD — ใช้ติดป้าย 🧪 ในผลค้นหาว่าโรคไหนมีเงื่อนไข W/U
 function icdPick(id, code){
   const inp = document.getElementById(id);
   inp.value = code+' — '+ICD_NAME[code];
@@ -845,7 +847,8 @@ function wuRules(t, code){
 }
 function wuBoxHTML(boxId, t, code){
   const rules = wuRules(t, code);
-  if (!rules.length) return '';
+  if (!rules.length)
+    return code ? `<div class="muted" style="margin-top:4px; font-size:12px">✓ โรคนี้ไม่มีเงื่อนไข W/U พิเศษของ ${t.name} — จองได้เลย (โรคที่มีเงื่อนไขจะติด 🧪 ในผลค้นหา)</div>` : '';
   return `<div class="banner" style="margin:8px 0 0">
     🧪 <b>เงื่อนไขก่อนส่ง — ${t.name} ขอให้เตรียมมาด้วย:</b>
     ${rules.map(r=>`<div style="margin-top:3px"><b>${r.icd}</b> ${ICD_NAME[r.icd]||''}: ${r.items}</div>`).join('')}
@@ -1358,6 +1361,7 @@ function openQuickAdd(tid, ds, sess, noteDefault, preferUrgent){
     const tp = document.getElementById('qType').value;
     document.getElementById('qWu').innerHTML = tp==='refer' ? wuBoxHTML('qWu', t, code) : '';
   };
+  _icdWuT['qIcd'] = t;
   document.getElementById('qHn').focus();
   qTypeChanged(tid, ds, sess);
 }
@@ -2124,6 +2128,7 @@ function netBook(tid, date, sess){
     <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="netSave('${tid}','${date}','${sess}')">✔ ยืนยันจอง</button></div>
   `);
   _icdWatch['nIcd'] = code => { document.getElementById('nWu').innerHTML = wuBoxHTML('nWu', t, code); };
+  _icdWuT['nIcd'] = t;
 }
 function netSave(tid, date, sess){
   const t = T(tid);
