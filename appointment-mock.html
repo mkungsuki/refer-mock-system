@@ -840,7 +840,26 @@ function icdPick(id, code){
   if (_icdWatch[id]) _icdWatch[id](code);
 }
 
-/* ---------- W/U ก่อนส่ง refer: เงื่อนไขผูกกับ ICD-10 ที่หมอเจ้าของช่องกำหนดเอง ---------- */
+/* ---------- W/U ก่อนส่ง refer: เงื่อนไขผูกกับ ICD-10 ที่หมอเจ้าของช่องกำหนดเอง ----------
+   เด้งเต็มเฉพาะ "ส่งวินิจฉัยใหม่" — เคสติดตามเดิมเตือนเบาๆ ไม่บังคับ (กัน alert fatigue แบบ NHS referral reason) */
+const REF_PURPOSE = {newdx:'ส่งวินิจฉัย/รักษา (เคสใหม่)', fu:'ติดตามผู้ป่วยเดิม (F/U)', ix:'ขอตรวจ/หัตถการเฉพาะ'};
+function purposeSelHTML(id, onchange){
+  return `<label class="f">วัตถุประสงค์การส่ง <select id="${id}" onchange="${onchange}">
+    <option value="newdx">${REF_PURPOSE.newdx}</option>
+    <option value="fu">${REF_PURPOSE.fu}</option>
+    <option value="ix">${REF_PURPOSE.ix}</option>
+  </select></label>`;
+}
+function wuRender(boxId, t, code, purpose){
+  const rules = wuRules(t, code);
+  if (purpose === 'ix') return '';
+  if (purpose === 'fu'){
+    return rules.length
+      ? `<div class="muted" style="margin-top:4px; font-size:12px">ℹ️ เคสติดตามเดิม — ไม่บังคับ W/U (เงื่อนไขใช้กับเคสวินิจฉัยใหม่) · ถ้ามีผลล่าสุดแนบมาด้วยจะช่วยมาก: ${rules.map(r=>r.items).join(' · ')}</div>`
+      : '';
+  }
+  return wuBoxHTML(boxId, t, code);   // newdx = กล่องเต็ม + ติ๊กรับทราบ
+}
 function wuRules(t, code){
   if (!t || !t.wu || !code) return [];
   return t.wu.filter(r => code.startsWith(r.icd));   // prefix match: N18 ครอบ N18.3/N18.5
@@ -978,7 +997,7 @@ function printSlip(id){
         ${a.cid ? `<tr><td>เลขบัตรประชาชน</td><td>${a.cid}</td></tr>` : ''}
         ${a.refNo ? `<tr><td>เลข refer</td><td>${a.refNo}</td></tr>` : ''}
         <tr><td>นัดพบ</td><td><b>${t.name}</b> (${t.dept})</td></tr>
-        <tr><td>ประเภทนัด</td><td>${TYPE_TH[a.type]}${a.from ? ' · ส่งจาก '+a.from : ''}</td></tr>
+        <tr><td>ประเภทนัด</td><td>${TYPE_TH[a.type]}${a.from ? ' · ส่งจาก '+a.from : ''}${a.refPurpose ? ' · '+REF_PURPOSE[a.refPurpose] : ''}</td></tr>
         ${a.icd ? `<tr><td>โรค/เรื่องที่นัด</td><td>${a.icd} — ${ICD_NAME[a.icd]||''}</td></tr>` : ''}
         ${a.note ? `<tr><td>หมายเหตุ</td><td>${a.note}</td></tr>` : ''}
         ${a.wuList ? `<tr><td>🧪 เตรียมมาก่อนพบแพทย์</td><td><b>${a.wuList}</b>${a.wuAck?' (แจ้งว่าเตรียมครบแล้ว)':''}</td></tr>` : ''}
@@ -1279,7 +1298,7 @@ function dayPanelHTML(t, ds){
               ${a.wuList ? (a.wuAck
                 ? `<span class="chip ok" title="${a.wuList}">🧪 W/U ครบ</span>`
                 : `<span class="chip warn" title="ขอให้เตรียม: ${a.wuList}">🧪 รอ W/U</span>`) : ''}
-              ${xfChips(t,a)}${a.note?`<span>${a.note}</span>`:''}${a.from?`<span>⬅ ${a.from}</span>`:''}</div>
+              ${xfChips(t,a)}${a.refPurpose?`<span class="chip kind">${a.refPurpose==='newdx'?'วินิจฉัยใหม่':a.refPurpose==='fu'?'F/U เดิม':'ขอตรวจ'}</span>`:''}${a.note?`<span>${a.note}</span>`:''}${a.from?`<span>⬅ ${a.from}</span>`:''}</div>
           </div>
           <div class="acts">
             ${!a.hn && canModifyAppt(a) ? `<button class="sbtn teal" onclick="openHnFill(${a.id})">ออก HN</button>` : ''}
@@ -1343,7 +1362,8 @@ function openQuickAdd(tid, ds, sess, noteDefault, preferUrgent){
     </div>
     <label class="f">HN <input id="qHn" placeholder="HN 6812345"></label>
     <label class="f">ชื่อ-สกุล <input id="qPname" placeholder="ระบบจริงดึงจาก HOSxP อัตโนมัติ"></label>
-    <span id="qFromWrap" style="display:none"><label class="f">ส่งจาก <select id="qFrom">${NET_HOSPS.map(h=>`<option>${h}</option>`).join('')}</select></label></span>
+    <span id="qFromWrap" style="display:none"><label class="f">ส่งจาก <select id="qFrom">${NET_HOSPS.map(h=>`<option>${h}</option>`).join('')}</select></label>
+      ${purposeSelHTML('qPurpose','qWuPaint()')}</span>
     ${icdFieldHTML('qIcd')}
     <div id="qWu"></div>
     ${xfFormHTML(t,'qx-')}
@@ -1357,10 +1377,12 @@ function openQuickAdd(tid, ds, sess, noteDefault, preferUrgent){
       canOverride(t,x) && bucketUsed(t,c,x)<hardMax(t,x));
     if (tp) document.getElementById('qType').value = tp;
   }
-  _icdWatch['qIcd'] = code => {
+  window.qWuPaint = () => {
     const tp = document.getElementById('qType').value;
-    document.getElementById('qWu').innerHTML = tp==='refer' ? wuBoxHTML('qWu', t, code) : '';
+    document.getElementById('qWu').innerHTML = tp==='refer'
+      ? wuRender('qWu', t, icdRead('qIcd'), document.getElementById('qPurpose').value) : '';
   };
+  _icdWatch['qIcd'] = () => qWuPaint();
   _icdWuT['qIcd'] = t;
   document.getElementById('qHn').focus();
   qTypeChanged(tid, ds, sess);
@@ -1370,8 +1392,7 @@ function qTypeChanged(tid, ds, sess){
   const c = counts(tid, ds, sess);
   const tp = document.getElementById('qType').value;
   document.getElementById('qFromWrap').style.display = tp==='refer' ? '' : 'none';
-  const qw = document.getElementById('qWu');
-  if (qw) qw.innerHTML = tp==='refer' ? wuBoxHTML('qWu', t, icdRead('qIcd')) : '';
+  if (typeof window.qWuPaint === 'function') qWuPaint();
   const full = bucketUsed(t,c,tp) >= bucketCap(t,tp) && bucketCap(t,tp)>0;
   document.getElementById('qUrgWrap').style.display = (full && canOverride(t,tp) && bucketUsed(t,c,tp) < hardMax(t,tp)) ? '' : 'none';
 }
@@ -1395,10 +1416,11 @@ function quickSave(tid, ds, sess){
   const note = document.getElementById('qNote').value.trim();
   const from = type==='refer' ? document.getElementById('qFrom').value : null;
   const qIcdCode = icdRead('qIcd');
+  const qPurpose = type==='refer' ? document.getElementById('qPurpose').value : undefined;
   state.appts.push(Object.assign({id:state.nextId++, hn, pname, targetId:tid, date:ds, session:sess, type, note, from,
-    icd: qIcdCode, createdOn: TODAY, status: 'booked', extra: xfRead(t,'qx-'),
+    refPurpose: qPurpose, icd: qIcdCode, createdOn: TODAY, status: 'booked', extra: xfRead(t,'qx-'),
     urgent, urgentReason: urgent?urgentReason:undefined, approvedBy: urgent?(user?user.name:''):undefined},
-    type==='refer' ? wuCapture('qWu', t, qIcdCode) : {}));
+    type==='refer' && qPurpose==='newdx' ? wuCapture('qWu', t, qIcdCode) : {}));
   if (iv) iv.cands = candidateSlots(t, iv.bucket, iv.target);  // refresh ที่ว่างหลังลงนัด
   const d=s2d(ds); cal.y=d.getFullYear(); cal.m=d.getMonth(); cal.sel=ds;
   save(); closeModal(); render();
@@ -2121,13 +2143,18 @@ function netBook(tid, date, sess){
     <label class="f">ชื่อ-สกุลผู้ป่วย <input id="nPname" placeholder="เช่น นายสมหมาย ใจดี"></label>
     <label class="f">เลขบัตรประชาชน (CID) — ตัวระบุข้าม รพ. <input id="nCid" maxlength="13" placeholder="13 หลัก · รพ.ชุมแพ ใช้ match แล้วออก HN เอง"></label>
     <label class="f">เลข refer / ThaiRefer (ถ้ามี) <input id="nRef" placeholder="เช่น TR-680831-012"></label>
+    ${purposeSelHTML('nPurpose','nWuPaint()')}
     ${icdFieldHTML('nIcd')}
     <div id="nWu"></div>
     ${xfFormHTML(t,'nx-')}
     <label class="f">เหตุผลส่งตัว / สิ่งที่ขอ <input id="nNote" placeholder="เช่น ขอ echo ประเมิน EF / สงสัย CA"></label>
     <div class="row mt"><button class="hbtn" style="background:var(--teal);color:#fff" onclick="netSave('${tid}','${date}','${sess}')">✔ ยืนยันจอง</button></div>
   `);
-  _icdWatch['nIcd'] = code => { document.getElementById('nWu').innerHTML = wuBoxHTML('nWu', t, code); };
+  window.nWuPaint = () => {
+    document.getElementById('nWu').innerHTML =
+      wuRender('nWu', t, icdRead('nIcd'), document.getElementById('nPurpose').value);
+  };
+  _icdWatch['nIcd'] = () => nWuPaint();
   _icdWuT['nIcd'] = t;
 }
 function netSave(tid, date, sess){
@@ -2141,8 +2168,10 @@ function netSave(tid, date, sess){
   const note = document.getElementById('nNote').value.trim();
   // รพช. ไม่รู้ HN ชุมแพ — เก็บ CID/ชื่อ/เลข refer ไว้ ฝั่งชุมแพ match แล้วออก HN ตอนลงทะเบียน
   const nIcdCode = icdRead('nIcd');
+  const nPurpose = document.getElementById('nPurpose').value;
   state.appts.push(Object.assign({id:state.nextId++, hn:null, pname, cid, refNo, targetId:tid, date, session:sess, type:'refer', note, from:netHosp,
-    icd: nIcdCode, createdOn: TODAY, status: 'booked', extra: xfRead(t,'nx-')}, wuCapture('nWu', t, nIcdCode)));
+    refPurpose: nPurpose, icd: nIcdCode, createdOn: TODAY, status: 'booked', extra: xfRead(t,'nx-')},
+    nPurpose==='newdx' ? wuCapture('nWu', t, nIcdCode) : {}));
   if (iv) iv.cands = candidateSlots(t, 'r', iv.target);
   save(); closeModal(); render();
   toast(`จองสำเร็จ — ${t.name} ${fmtShort(date)} (${SESS_TH[sess]})`);
